@@ -35,6 +35,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		///
 
 		Novice::ScreenPrintf(600, 340, "konnnitiwa");
+		Novice::ScreenPrintf(600, 340, "konnnitiwaaaa");
 
 		///
 		/// ↑描画処理ここまで
