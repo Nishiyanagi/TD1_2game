@@ -4,7 +4,7 @@
 class Player {
 public:
 
-	Player(Vector2 position);
+	Player(Vector2 position, Vector2 speed, Vector2 range);
 	void Jump(const char* keys, Vector2 speed);
 	void Move(const char* keys, Vector2 speed);
 

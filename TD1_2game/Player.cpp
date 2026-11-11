@@ -2,6 +2,13 @@
 #include "Vector2.h"
 #include <Novice.h>
 
+Player::Player(Vector2 position, Vector2 speed, Vector2 range )
+	:pos_{position},
+	velocity_{ speed },
+	size_{range}
+
+{}
+
 void Jump(const char* keys, Vector2 speed) {
 
 }
