@@ -4,10 +4,13 @@
 class Player {
 public:
 
-	void Jump();
-	void Move();
+	Player(Vector2 position);
+	void Jump(const char* keys, Vector2 speed);
+	void Move(const char* keys, Vector2 speed);
 
-	Vector2 Pos()const;
+	Vector2 Pos();//場所確認
+	Vector2 Size();//大きさ確認
+	Vector2 Velocity();//速度確認
 
 private:
 	Vector2 pos_{};
