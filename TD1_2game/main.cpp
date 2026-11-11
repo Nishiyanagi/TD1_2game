@@ -28,7 +28,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓更新処理ここから
 		///
 
-		player->Move(keys, Vector2(5.0f, 0.0f));
+		player->Move(keys, player->Velocity());
 		player->Jump(keys, preKeys, player->Velocity());
 
 		///
@@ -39,7 +39,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓描画処理ここから
 		///
 
-		Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, WHITE, kFillModeSolid);
+		Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y * -1 + 400 ), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, WHITE, kFillModeSolid);
 
 		///
 		/// ↑描画処理ここまで
