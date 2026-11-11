@@ -8,7 +8,7 @@ Player::Player(Vector2 position, Vector2 speed, Vector2 range )
 	size_{range}
 
 {}
-
+//こんにちわ
 void Jump(const char* keys, Vector2 speed) {
 
 }
