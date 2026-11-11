@@ -27,6 +27,8 @@ public:
 	bool WeaponHit();//自傷で吹っ飛ぶ時の、ヒット処理
 	void Heal(float amount);
 
+
+
 	Vector2 Pos();//場所確認
 	Vector2 Size();//大きさ確認
 	Vector2* Velocity();//速度確認

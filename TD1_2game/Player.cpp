@@ -158,6 +158,9 @@ float  Player::JumpCount() {//ジャンプ回数確認
 float  Player::HP() {//HP確認
 	return hp_;
 }
+int  Player::JumpCounte() {//速度確認
+	return jumpCounte_;
+}
 
 float Player::attackTimer() {//攻撃タイマー増加
 	attackTimer_++;
