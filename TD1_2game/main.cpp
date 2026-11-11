@@ -1,5 +1,12 @@
 #include <Novice.h>
 #include "Player.h"
+#include "Vector2.h"
+#include "Line.h"
+#ifdef USE_IMGUI
+#include <imgui.h>
+#endif
+
+Line* line = new Line(Vector2(0.0f, 0.0f), Vector2(1280.0f, 0.0f));
 
 const char kWindowTitle[] = "LC1B_16_ニシヤナギ_リョウマ_タイトル";
 
@@ -9,8 +16,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	// ライブラリの初期化
 	Novice::Initialize(kWindowTitle, 1280, 720);
 
-	Player* player = new Player(Vector2(640.0f, 0.0f), Vector2(5.0f, 5.0f), Vector2(50.0f, 50.0f));
 
+	
+
+	Player* player = new Player(Vector2(640.0f, 50.0f), Vector2(5.0f, 5.0f), Vector2(50.0f, 50.0f));
 	// キー入力結果を受け取る箱
 	char keys[256] = {0};
 	char preKeys[256] = {0};
@@ -27,7 +36,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		///
 		/// ↓更新処理ここから
 		///
+	/*	ImGui::Begin("");
 
+		ImGui::End();*/
+	
 		player->Move(keys, player->Velocity());
 		player->Jump(keys, preKeys, player->Velocity());
 
@@ -39,7 +51,15 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓描画処理ここから
 		///
 
+	
 		Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y * -1 + 400 ), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, WHITE, kFillModeSolid);
+
+		Novice::DrawLine(static_cast<int>(line->StartPos().x), static_cast<int>(line->StartPos().y * -1 + 400), static_cast<int>(line->EndPos().x), static_cast<int>(line->EndPos().y * -1 + 400),0xffffffff);
+	
+#ifdef _DEBUG
+		Novice::ScreenPrintf(0,0,"JumpCount:%d",player->JumpCounte());
+#endif
+
 
 		///
 		/// ↑描画処理ここまで

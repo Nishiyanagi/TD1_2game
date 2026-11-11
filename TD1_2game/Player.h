@@ -8,9 +8,12 @@ public:
 	void Jump(const char* keys, const char* preKeys, Vector2 speed);
 	void Move(const char* keys, Vector2 speed);
 
+
+
 	Vector2 Pos();//場所確認
 	Vector2 Size();//大きさ確認
 	Vector2 Velocity();//速度確認
+	int JumpCounte();//速度確認
 
 private:
 	Vector2 pos_{};
