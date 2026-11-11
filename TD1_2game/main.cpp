@@ -9,7 +9,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	// ライブラリの初期化
 	Novice::Initialize(kWindowTitle, 1280, 720);
 
-	Player* player = new Player(Vector2(640.0f, 0.0f), Vector2(50.0f, 50.0f));
+	Player* player = new Player(Vector2(640.0f, 0.0f), Vector2(50.0f, 50.0f), Vector2(5.0f, 5.0f));
 
 	// キー入力結果を受け取る箱
 	char keys[256] = {0};
@@ -28,8 +28,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓更新処理ここから
 		///
 
-		player->Move(keys, Vector2(5.0f, 0.0f));
-		player->Jump(keys, Vector2(5.0f, 0.0f));
+		player->Move(keys, player->Velocity());
+		player->Jump(keys, preKeys, player->Velocity());
 
 		///
 		/// ↑更新処理ここまで
@@ -39,7 +39,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓描画処理ここから
 		///
 
-		Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, WHITE, kFillModeSolid);
+		Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y * -1 + 400 ), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, WHITE, kFillModeSolid);
 
 		///
 		/// ↑描画処理ここまで

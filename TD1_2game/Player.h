@@ -5,7 +5,7 @@ class Player {
 public:
 
 	Player(Vector2 position, Vector2 speed, Vector2 range);
-	float Jump(const char* keys, const char* preKeys, Vector2 speed);
+	void Jump(const char* keys, const char* preKeys, Vector2 speed);
 	void Move(const char* keys, Vector2 speed);
 
 	Vector2 Pos();//場所確認
