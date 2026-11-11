@@ -9,7 +9,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	// ライブラリの初期化
 	Novice::Initialize(kWindowTitle, 1280, 720);
 
-	Player* player = new Player(Vector2(640.0f, 0.0f), Vector2(50.0f, 50.0f));
+	Player* player = new Player(Vector2(640.0f, 0.0f), Vector2(4.0f, 4.0f), Vector2(50.0f, 50.0f));
 
 	// キー入力結果を受け取る箱
 	char keys[256] = {0};
@@ -29,7 +29,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		///
 
 		player->Move(keys, Vector2(5.0f, 0.0f));
-		player->Jump(keys, Vector2(5.0f, 0.0f));
+		player->Jump(keys, preKeys, player->Velocity());
 
 		///
 		/// ↑更新処理ここまで
