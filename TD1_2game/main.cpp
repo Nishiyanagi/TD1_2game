@@ -50,7 +50,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #pragma region Enemy1
 
-		enemy1->Move();
+		Vector2 playerCenter{
+		player->Pos().x + player->Size().x * 0.5f,
+		player->Pos().y - player->Size().y * 0.5f
+		};
+		enemy1->Move(playerCenter);
 
 #pragma endregion
 
