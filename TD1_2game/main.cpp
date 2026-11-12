@@ -40,8 +40,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		ImGui::End();*/
 	
-		player->Move(keys, player->Velocity());
-		player->Jump(keys, preKeys, player->Velocity());
+		player->Move(keys, *player->Velocity());
+		player->Jump(keys, preKeys, *player->Velocity());
 
 		///
 		/// ↑更新処理ここまで
@@ -52,12 +52,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		///
 
 	
-		Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y * -1 + 400 ), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, WHITE, kFillModeSolid);
+		Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y * -1 + 600), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, WHITE, kFillModeSolid);
 
-		Novice::DrawLine(static_cast<int>(line->StartPos().x), static_cast<int>(line->StartPos().y * -1 + 400), static_cast<int>(line->EndPos().x), static_cast<int>(line->EndPos().y * -1 + 400),0xffffffff);
+		Novice::DrawLine(static_cast<int>(line->StartPos().x), static_cast<int>(line->StartPos().y * -1 + 600), static_cast<int>(line->EndPos().x), static_cast<int>(line->EndPos().y * -1 + 600),0xffffffff);
 	
 #ifdef _DEBUG
-		Novice::ScreenPrintf(0,0,"JumpCount:%d",player->JumpCounte());
+		Novice::ScreenPrintf(0,0,"JumpCount:%f",player->JumpCounte());
 #endif
 
 
