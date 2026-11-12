@@ -14,7 +14,7 @@ const char kWindowTitle[] = "LC1B_16_ニシヤナギ_リョウマ_タイトル";
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	// ライブラリの初期化
-	Novice::Initialize(kWindowTitle, 1280, 720);
+	Novice::Initialize(kWindowTitle, 1920, 1080);
 
 
 
