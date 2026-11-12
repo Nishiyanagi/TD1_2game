@@ -1,5 +1,6 @@
 #include <Novice.h>
 #include "Player.h"
+#include "Weapon.h"
 #include "Vector2.h"
 #include "Line.h"
 #ifdef USE_IMGUI
@@ -17,6 +18,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Novice::Initialize(kWindowTitle, 1920, 1080);
 
 	Player* player = new Player(Vector2(640.0f, 50.0f), Vector2(5.0f, 5.0f), Vector2(50.0f, 50.0f));
+	Weapon* weapon = new Weapon(Vector2(640.0f, 50.0f), Vector2(50.0f, 25.0f));
+
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
 	char preKeys[256] = { 0 };
@@ -40,13 +43,25 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		player->Move(keys, *player->Velocity());
 		player->Jump(keys, preKeys, *player->Velocity());
 
-		player->Attack();
 		player->Defence();
 
-		if (player->Attack())
+		if (player->attackTimer() >= 90)
 		{
-
+			if (player->Attack())
+			{
+				weapon->SetActive(true);
+			}
+			else
+			{
+				weapon->SetActive(false);
+			}
 		}
+		else
+		{
+			weapon->SetActive(false);
+		}
+
+		weapon->IsActive();
 
 		///
 		/// ↑更新処理ここまで
@@ -69,6 +84,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		}
 
+		if (weapon->IsActive()) {
+			Novice::DrawBox(static_cast<int>(weapon->Pos().x), static_cast<int>(weapon->Pos().y * -1 + 600), static_cast<int>(weapon->Size().x), static_cast<int>(weapon->Size().y), 0.0f, BLACK, kFillModeSolid);
+		}
+
 		Novice::DrawLine(static_cast<int>(line->StartPos().x), static_cast<int>(line->StartPos().y * -1 + 600), static_cast<int>(line->EndPos().x), static_cast<int>(line->EndPos().y * -1 + 600), 0xffffffff);
 
 #ifdef _DEBUG
@@ -85,6 +104,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			Novice::ScreenPrintf(0, 20, "Acction:None");
 
 		}
+
+		player->Show();
 #endif
 
 

@@ -44,14 +44,27 @@ void Player::Move(const char* keys, Vector2 speed) {
 	}
 }
 
+void Player::Show()
+{
+	Novice::ScreenPrintf(0, 40, "AttackTimer:%f", attackTimer_);
+}
+
 bool Player::Attack() {
 	if (Novice::IsPressMouse(0)) {
-		return isAttack_ = true;
+		if (attackTimer_ >= 300)
+		{
+			attackTimer_ = 300;
+			return isAttack_ = false;
+		}
+		else
+		{
+			return isAttack_ = true;
+		}
 	}
 	else {
+		attackTimer_ = 0;
 		return isAttack_ = false;
 	}
-
 }
 bool Player::Defence() {
 	if (Novice::IsPressMouse(1)) {
@@ -74,5 +87,10 @@ Vector2* Player::Velocity() {//速度確認
 }
 float  Player::JumpCounte() {//速度確認
 	return jumpCounte_;
+}
+
+float  Player::attackTimer() {//速度確認
+	attackTimer_++;
+	return attackTimer_;
 }
 
