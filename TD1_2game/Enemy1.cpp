@@ -1,5 +1,6 @@
 #include "Enemy1.h"
 #include "Random.h"
+#include "Random.h"
 
 namespace {
 	float Clamp(float value, float min, float max)

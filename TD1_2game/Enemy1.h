@@ -24,7 +24,6 @@ private:
 		SlamLand,   // 頭上攻撃: 着地の大きな硬直
 };
 
-
 	void StartChaseJump(const Vector2& targetPos, bool isBig);
 	void StartSlam();
 	void ClampToScreen();
