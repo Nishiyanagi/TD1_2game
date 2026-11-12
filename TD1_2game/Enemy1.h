@@ -21,14 +21,18 @@ private:
 		SlamFall,   // 頭上攻撃: 落下
 		SlamLand,   // 頭上攻撃: 着地の大きな硬直
 	};
+		
 
-	void StartChaseJump(const Vector2& targetPos);
+	void StartChaseJump(const Vector2& targetPos, bool isBig);
 	void StartSlam();
 	void ClampToScreen();
 
 	State state_ = State::Idle;
+	bool isFirstAction_ = true;        // 最初の行動かどうか(最初は必ず小ジャンプ)
+	bool isBigJump_ = false;           // 今のジャンプが大ジャンプか
 	Cooldown idleCooldown_{ 40 };      // 攻撃前の待ち
-	Cooldown landCooldown_{ 20 };      // ジャンプ着地後の硬直
+	Cooldown landCooldown_{ 20 };      // 小ジャンプ着地後の硬直
+	Cooldown bigLandCooldown_{ 35 };   // 大ジャンプ着地後の硬直
 	Cooldown trackCooldown_{ 90 };     // 上昇+追尾の時間
 	Cooldown waitCooldown_{ 20 };      // 落下前の停止時間
 	Cooldown slamLandCooldown_{ 50 };  // 落下着地後の硬直
@@ -38,12 +42,19 @@ private:
 	static constexpr float kGroundY = 0.0f;        // 地面の高さ(Y上向き)
 	static constexpr float kScreenWidth = 1920.0f;
 
-	// 追尾ジャンプ
-	static constexpr float kJumpY = 22.0f;         // ジャンプの初速(上向き)
-	static constexpr float kMaxJumpSpeedX = 14.0f; // 横速度の上限
+	// 追尾ジャンプ(小)
+	static constexpr float kSmallJumpY = 16.0f;         // 初速(上向き)
+	static constexpr float kSmallMaxSpeedX = 10.0f;     // 横速度の上限
+
+	// 追尾ジャンプ(大)
+	static constexpr float kBigJumpY = 24.0f;
+	static constexpr float kBigMaxSpeedX = 16.0f;
+
+	// 行動の確率(%)。残りが小ジャンプ
+	static constexpr int kSlamChance = 30;              // 頭上落下
+	static constexpr int kBigJumpChance = 25;           // 大ジャンプ
 
 	// 頭上落下攻撃
-	static constexpr int kSlamChance = 30;         // 頭上攻撃を選ぶ確率(%)
 	static constexpr float kSlamHeight = 500.0f;   // 滞空する高さ(posのY)
 	static constexpr float kRiseSpeed = 30.0f;     // 上昇速度の上限
 	static constexpr float kRiseGain = 0.08f;      // 目標高さまでの距離に対する速度の割合
