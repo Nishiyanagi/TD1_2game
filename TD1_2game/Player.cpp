@@ -161,6 +161,9 @@ float  Player::HP() {//HP確認
 float  Player::JumpCounte() {//速度確認
 	return jumpCounte_;
 }
+float  Player::HP() {//速度確認
+	return hp_;
+}
 
 float Player::attackTimer() {//攻撃タイマー増加
 	attackTimer_++;

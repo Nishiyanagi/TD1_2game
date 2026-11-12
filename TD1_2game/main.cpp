@@ -331,7 +331,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		Novice::DrawLine(static_cast<int>(line->StartPos().x), static_cast<int>(line->StartPos().y * -1 + 600), static_cast<int>(line->EndPos().x), static_cast<int>(line->EndPos().y * -1 + 600), 0xffffffff);
 
 #ifdef _DEBUG
-		Novice::ScreenPrintf(0, 0, "JumpCount:%f", player->JumpCounte());
+		Novice::ScreenPrintf(0, 0, "JumpCount:%.1f", player->JumpCounte());
 		if (player->Attack()) {//攻撃時
 			Novice::ScreenPrintf(0, 20, "Acction:Attack");
 
@@ -345,7 +345,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			
 		}
 
-		player->Show();
+		Novice::ScreenPrintf(0, 40, "HP:%.1f",player->HP());
+
 #endif
 
 
