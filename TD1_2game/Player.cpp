@@ -15,11 +15,22 @@ void Player::Jump(const char* keys, const char* preKeys, Vector2& speed) {
 
 	if (keys[DIK_SPACE] && !preKeys[DIK_SPACE]) {
 
-		isJump = true;
-		jumpCounte_++;
-		speed.y = 10.0f * (1.0f - jumpCounte_ / 15);
+		isJump_ = true;
+
+		/*if (jumpCounte_ >= 15) {
+		}
+		else {
+			
+		}*/
+jumpCounte_++;
+			speed.y = 10.0f * (1.0f - jumpCounte_ / 15);
+
+
+		
+
+		/*speed.y *= ;*///とんだ回数分ジャンプ力が下がるやつ
 	}
-	if (isJump) {
+	if (isJump_) {
 		if ((pos_.y < line->StartPos().y + size_.y || pos_.y < line->EndPos().y + size_.y)) {
 			pos_.y = line->StartPos().y + size_.y;
 			speed.y = 0;
