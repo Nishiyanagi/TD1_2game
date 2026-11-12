@@ -15,7 +15,7 @@ void Player::Jump(const char* keys, const char* preKeys, Vector2& speed) {
 
 	if (keys[DIK_SPACE] && !preKeys[DIK_SPACE]) {
 
-		isJump = true;
+		isJump_ = true;
 
 		/*if (jumpCounte_ >= 15) {
 		}
@@ -30,7 +30,7 @@ jumpCounte_++;
 
 		/*speed.y *= ;*///とんだ回数分ジャンプ力が下がるやつ
 	}
-	if (isJump) {
+	if (isJump_) {
 		if ((pos_.y < line->StartPos().y + size_.y || pos_.y < line->EndPos().y + size_.y)) {
 			pos_.y = line->StartPos().y + size_.y;
 			speed.y = 0;
@@ -55,6 +55,24 @@ void Player::Move(const char* keys, Vector2 speed) {
 	}
 	if (keys[DIK_S]) {
 		pos_.y -= speed.y;
+	}
+}
+
+bool Player::Attack() {
+	if (Novice::IsPressMouse(0)) {
+		return isAttack_ = true;
+	}
+	else {
+		return isAttack_ = false;
+	}
+
+}
+bool Player::Defence() {
+	if (Novice::IsPressMouse(1)) {
+		return isDefece_ = true;
+	}
+	else {
+		return isDefece_ = false;
 	}
 }
 
