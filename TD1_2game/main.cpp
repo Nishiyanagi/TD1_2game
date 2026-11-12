@@ -3,6 +3,8 @@
 #include "Weapon.h"
 #include "Vector2.h"
 #include "Line.h"
+#include "Enemy1.h"
+#include "Random.h"
 #ifdef USE_IMGUI
 #include <imgui.h>
 #endif
@@ -17,9 +19,15 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	// ライブラリの初期化
 	Novice::Initialize(kWindowTitle, 1920, 1080);
 
+	Random::Init();
+
+	Enemy1* enemy1 = new Enemy1(Vector2(1200.0f, 100.0f), Vector2(100.0f, 100.0f), Vector2(0.0f, 0.0f), 100);
+
+	Player* player = new Player(Vector2(640.0f, 50.0f), Vector2(5.0f, 5.0f), Vector2(50.0f, 50.0f),100.0f);
 	Player* player = new Player(Vector2(640.0f, 50.0f), Vector2(5.0f, 5.0f), Vector2(50.0f, 50.0f), 100.0f);
 	Weapon* weapon = new Weapon(Vector2(640.0f, 50.0f), Vector2(50.0f, 25.0f));
 
+	
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
 	char preKeys[256] = { 0 };
@@ -39,6 +47,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	/*	ImGui::Begin("");
 
 		ImGui::End();*/
+
+#pragma region Enemy1
+
+		enemy1->Move();
+
+#pragma endregion
 
 		player->Move(keys, *player->Velocity());
 		player->Jump(keys, preKeys, *player->Velocity());
@@ -70,6 +84,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		///
 		/// ↓描画処理ここから
 		///
+
+#pragma region Enemy1
+
+		Novice::DrawBox(static_cast<int>(enemy1->Pos().x), static_cast<int>(enemy1->Pos().y * -1 + 600),
+			static_cast<int>(enemy1->Size().x), static_cast<int>(enemy1->Size().y), 0.0f, 0x40C040ff, kFillModeSolid);
+
+#pragma endregion
 
 		if (player->Attack()) {//攻撃時
 			Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y * -1 + 600), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, 0xD06060ff, kFillModeSolid);
