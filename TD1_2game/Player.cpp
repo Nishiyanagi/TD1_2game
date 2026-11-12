@@ -52,6 +52,40 @@ void Player::Move(const char* keys, Vector2 speed) {
 	}
 	if (keys[DIK_S]) {
 		pos_.y -= speed.y;
+	}
+}
+
+void Player::Show()
+{
+	Novice::ScreenPrintf(0, 40, "AttackTimer:%f", attackTimer_);
+}
+
+bool Player::Attack() {
+	if (Novice::IsPressMouse(0)) {
+		if (attackTimer_ >= 300)
+		{
+			attackTimer_ = 300;
+			return isAttack_ = false;
+		}
+		else
+		{
+			return isAttack_ = true;
+		}
+	}
+	else {
+		attackTimer_ = 0;
+		return isAttack_ = false;
+	}
+}
+bool Player::Defence() {
+	if (Novice::IsPressMouse(1)) {
+		return isDefece_ = true;
+	}
+	else {
+		return isDefece_ = false;
+	}
+}
+
 Vector2 Player::Pos() {//場所確認
 	return pos_;
 }
@@ -68,10 +102,8 @@ float  Player::JumpCounte() {//速度確認
 	return jumpCounte_;
 }
 
-Vector2 Player::Size() {
-	return size_;
+float  Player::attackTimer() {//速度確認
+	attackTimer_++;
+	return attackTimer_;
 }
 
-Vector2 Player::Velocity() {
-	return velocity_;
-}
