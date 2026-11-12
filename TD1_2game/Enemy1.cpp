@@ -24,11 +24,23 @@ void Enemy1::Move(const Vector2& targetPos)
 	case State::Idle:
 		idleCooldown_.Update();
 		if (idleCooldown_.IsReady()) {
-			if (Random::Chance(kSlamChance)) {
-				StartSlam();
+			if (isFirstAction_) {
+				// 最初は必ず小ジャンプ
+				isFirstAction_ = false;
+				StartChaseJump(targetPos, false);
 			}
 			else {
-				StartChaseJump(targetPos);
+				// 0〜99 の値で振り分ける
+				const int roll = Random::Range(0, 99);
+				if (roll < kSlamChance) {
+					StartSlam();
+				}
+				else if (roll < kSlamChance + kBigJumpChance) {
+					StartChaseJump(targetPos, true);
+				}
+				else {
+					StartChaseJump(targetPos, false);
+				}
 			}
 		}
 		break;
@@ -44,17 +56,21 @@ void Enemy1::Move(const Vector2& targetPos)
 			pos_.y = kGroundY + size_.y;
 			velocity_ = { 0.0f, 0.0f };
 			state_ = State::Land;
-			landCooldown_.Start();
+			if (isBigJump_) { bigLandCooldown_.Start(); }
+			else { landCooldown_.Start(); }
 		}
 		break;
 
 	case State::Land:
-		landCooldown_.Update();
-		if (landCooldown_.IsReady()) {
+	{
+		Cooldown& cooldown = isBigJump_ ? bigLandCooldown_ : landCooldown_;
+		cooldown.Update();
+		if (cooldown.IsReady()) {
 			idleCooldown_.Start();
 			state_ = State::Idle;
 		}
 		break;
+	}
 
 	case State::SlamTrack:
 	{
@@ -116,16 +132,21 @@ void Enemy1::Move(const Vector2& targetPos)
 	}
 }
 
-void Enemy1::StartChaseJump(const Vector2& targetPos)
+void Enemy1::StartChaseJump(const Vector2& targetPos, bool isBig)
 {
+	isBigJump_ = isBig;
+
+	const float jumpY = isBig ? kBigJumpY : kSmallJumpY;
+	const float maxSpeedX = isBig ? kBigMaxSpeedX : kSmallMaxSpeedX;
+
 	const float centerX = pos_.x + size_.x * 0.5f;
 	const float dx = targetPos.x - centerX;
 
 	// 滞空フレーム数の目安(上がって同じ高さに戻るまで)
-	const float airTime = 2.0f * kJumpY / kGravity - 1.0f;
+	const float airTime = 2.0f * jumpY / kGravity - 1.0f;
 
-	velocity_.x = Clamp(dx / airTime, -kMaxJumpSpeedX, kMaxJumpSpeedX);
-	velocity_.y = kJumpY;
+	velocity_.x = Clamp(dx / airTime, -maxSpeedX, maxSpeedX);
+	velocity_.y = jumpY;
 	state_ = State::Jump;
 }
 
