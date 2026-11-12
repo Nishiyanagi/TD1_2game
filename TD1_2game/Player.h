@@ -8,6 +8,11 @@ enum Actions {
 	ATTACK = 1,
 	DEFENCE = 2
 };
+enum Actions {
+	NONE = 0,
+	ATTACK = 1,
+	DEFENCE = 2
+};
 class Camera;
 
 class Player {

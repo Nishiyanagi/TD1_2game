@@ -169,6 +169,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		weapon->IsActive();
 
 
+		player->Attack();
+		player->Defence();
 #pragma region Collision
 
 		playerInvincible.Update();
@@ -320,10 +322,24 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 #endif
 
 
-		Novice::DrawLine(static_cast<int>(line->StartPos().x), static_cast<int>(line->StartPos().y * -1 + 600), static_cast<int>(line->EndPos().x), static_cast<int>(line->EndPos().y * -1 + 600),0xffffffff);
-	
+		}
+		
+		Novice::DrawLine(static_cast<int>(line->StartPos().x), static_cast<int>(line->StartPos().y * -1 + 600), static_cast<int>(line->EndPos().x), static_cast<int>(line->EndPos().y * -1 + 600), 0xffffffff);
+
 #ifdef _DEBUG
-		Novice::ScreenPrintf(0,0,"JumpCount:%f",player->JumpCounte());
+		Novice::ScreenPrintf(0, 0, "JumpCount:%f", player->JumpCounte());
+		if (player->Attack()) {//攻撃時
+			Novice::ScreenPrintf(0, 20, "Acction:Attack");
+
+		}
+		else if (player->Defence()) {//ガード時
+			Novice::ScreenPrintf(0, 20, "Acction:Defence");
+			
+		}
+		else {//攻撃、ガード無し
+			Novice::ScreenPrintf(0, 20, "Acction:None");
+			
+		}
 #endif
 
 
