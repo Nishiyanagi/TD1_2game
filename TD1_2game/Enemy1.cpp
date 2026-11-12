@@ -1,32 +1,35 @@
 #include "Enemy1.h"
 #include "Random.h"
 
+namespace {
+	float Clamp(float value, float min, float max)
+	{
+		if (value < min) { return min; }
+		if (value > max) { return max; }
+		return value;
+	}
+}
+
 Enemy1::Enemy1(Vector2 position, Vector2 size, Vector2 velocity, int hp)
 	: Enemy{ position, size, velocity, hp }
 {
-	direction_ = Random::Chance(50) ? 1.0f : -1.0f;
 	idleCooldown_.Start();
 }
 
-void Enemy1::Move()
+void Enemy1::Move(const Vector2& targetPos)
 {
+	const float centerX = pos_.x + size_.x * 0.5f;
+
 	switch (state_) {
 	case State::Idle:
 		idleCooldown_.Update();
 		if (idleCooldown_.IsReady()) {
-			// 画面端に近いときは中央へ向かう
-			if (pos_.x < size_.x * 2.0f) {
-				direction_ = 1.0f;
+			if (Random::Chance(kSlamChance)) {
+				StartSlam();
 			}
-			else if (pos_.x + size_.x > kScreenWidth - size_.x * 2.0f) {
-				direction_ = -1.0f;
+			else {
+				StartChaseJump(targetPos);
 			}
-
-			// 小ジャンプ or 大ジャンプ
-			bool isBig = Random::Chance(kBigJumpChance);
-			velocity_.x = direction_ * (isBig ? kBigJumpX : kSmallJumpX);
-			velocity_.y = isBig ? kBigJumpY : kSmallJumpY;
-			state_ = State::Jump;
 		}
 		break;
 
@@ -34,20 +37,9 @@ void Enemy1::Move()
 		velocity_.y -= kGravity;
 		pos_.x += velocity_.x;
 		pos_.y += velocity_.y;
+		ClampToScreen();
 
-		// 壁で跳ね返る
-		if (pos_.x < 0.0f) {
-			pos_.x = 0.0f;
-			velocity_.x *= -1.0f;
-			direction_ = 1.0f;
-		}
-		else if (pos_.x + size_.x > kScreenWidth) {
-			pos_.x = kScreenWidth - size_.x;
-			velocity_.x *= -1.0f;
-			direction_ = -1.0f;
-		}
-
-		// 着地判定(posは左上なので、足元は pos_.y - size_.y)
+		// 着地判定(足元は pos_.y - size_.y)
 		if (velocity_.y < 0.0f && pos_.y - size_.y <= kGroundY) {
 			pos_.y = kGroundY + size_.y;
 			velocity_ = { 0.0f, 0.0f };
@@ -59,11 +51,92 @@ void Enemy1::Move()
 	case State::Land:
 		landCooldown_.Update();
 		if (landCooldown_.IsReady()) {
-			// 次のジャンプの向きをランダムに決める
-			if (Random::Chance(30)) { direction_ *= -1.0f; }
+			idleCooldown_.Start();
+			state_ = State::Idle;
+		}
+		break;
+
+	case State::SlamTrack:
+	{
+		// 目標速度: 目標までの距離に比例(近づくほど遅くなる)
+		const float targetVx = Clamp((targetPos.x - centerX) * kTrackGain, -kTrackSpeed, kTrackSpeed);
+		const float targetVy = Clamp((kSlamHeight - pos_.y) * kRiseGain, 0.0f, kRiseSpeed);
+
+		// 現在の速度を目標速度へ少しずつ近づける(加速・減速がなめらかになる)
+		velocity_.x += (targetVx - velocity_.x) * kBlend;
+		velocity_.y += (targetVy - velocity_.y) * kBlend;
+
+		// 縦と横を同時に動かすので、斜めの弧を描いて頭上へ向かう
+		pos_.x += velocity_.x;
+		pos_.y += velocity_.y;
+		ClampToScreen();
+
+		trackCooldown_.Update();
+		if (trackCooldown_.IsReady()) {
+			waitCooldown_.Start();
+			state_ = State::SlamWait;
+		}
+		break;
+	}
+
+	case State::SlamWait:
+		// 急停止せず、速度を落としながら止まる
+		velocity_.x *= kBrake;
+		velocity_.y *= kBrake;
+		pos_.x += velocity_.x;
+		pos_.y += velocity_.y;
+		ClampToScreen();
+
+		waitCooldown_.Update();
+		if (waitCooldown_.IsReady()) {
+			velocity_ = { 0.0f, 0.0f };
+			state_ = State::SlamFall;
+		}
+		break;
+
+	case State::SlamFall:
+		// 加速しながら落下
+		velocity_.y = Clamp(velocity_.y - kFallAccel, -kFallSpeed, kFallSpeed);
+		pos_.y += velocity_.y;
+		if (pos_.y - size_.y <= kGroundY) {
+			pos_.y = kGroundY + size_.y;
+			velocity_ = { 0.0f, 0.0f };
+			slamLandCooldown_.Start();
+			state_ = State::SlamLand;
+		}
+		break;
+
+	case State::SlamLand:
+		slamLandCooldown_.Update();
+		if (slamLandCooldown_.IsReady()) {
 			idleCooldown_.Start();
 			state_ = State::Idle;
 		}
 		break;
 	}
+}
+
+void Enemy1::StartChaseJump(const Vector2& targetPos)
+{
+	const float centerX = pos_.x + size_.x * 0.5f;
+	const float dx = targetPos.x - centerX;
+
+	// 滞空フレーム数の目安(上がって同じ高さに戻るまで)
+	const float airTime = 2.0f * kJumpY / kGravity - 1.0f;
+
+	velocity_.x = Clamp(dx / airTime, -kMaxJumpSpeedX, kMaxJumpSpeedX);
+	velocity_.y = kJumpY;
+	state_ = State::Jump;
+}
+
+void Enemy1::StartSlam()
+{
+	velocity_ = { 0.0f, 0.0f };
+	trackCooldown_.Start();
+	state_ = State::SlamTrack;
+}
+
+void Enemy1::ClampToScreen()
+{
+	pos_.x = Clamp(pos_.x, 0.0f, kScreenWidth - size_.x);
 }
