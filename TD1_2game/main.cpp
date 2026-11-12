@@ -14,12 +14,12 @@ const char kWindowTitle[] = "LC1B_16_ニシヤナギ_リョウマ_タイトル";
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	// ライブラリの初期化
-	Novice::Initialize(kWindowTitle, 1280, 720);
+	Novice::Initialize(kWindowTitle, 1920, 1080);
 
 	Player* player = new Player(Vector2(640.0f, 50.0f), Vector2(5.0f, 5.0f), Vector2(50.0f, 50.0f));
 	// キー入力結果を受け取る箱
-	char keys[256] = {0};
-	char preKeys[256] = {0};
+	char keys[256] = { 0 };
+	char preKeys[256] = { 0 };
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -36,9 +36,17 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	/*	ImGui::Begin("");
 
 		ImGui::End();*/
-	
+
 		player->Move(keys, *player->Velocity());
 		player->Jump(keys, preKeys, *player->Velocity());
+
+		player->Attack();
+		player->Defence();
+
+		if (player->Attack())
+		{
+
+		}
 
 		///
 		/// ↑更新処理ここまで
@@ -48,13 +56,35 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓描画処理ここから
 		///
 
-	
-		Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y * -1 + 600), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, WHITE, kFillModeSolid);
+		if (player->Attack()) {//攻撃時
+			Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y * -1 + 600), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, 0xD06060ff, kFillModeSolid);
 
-		Novice::DrawLine(static_cast<int>(line->StartPos().x), static_cast<int>(line->StartPos().y * -1 + 600), static_cast<int>(line->EndPos().x), static_cast<int>(line->EndPos().y * -1 + 600),0xffffffff);
-	
+		}
+		else if (player->Defence()) {//ガード時
+			Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y * -1 + 600), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, 0x6060D0ff, kFillModeSolid);
+
+		}
+		else {//攻撃、ガード無し
+			Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y * -1 + 600), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, WHITE, kFillModeSolid);
+
+		}
+
+		Novice::DrawLine(static_cast<int>(line->StartPos().x), static_cast<int>(line->StartPos().y * -1 + 600), static_cast<int>(line->EndPos().x), static_cast<int>(line->EndPos().y * -1 + 600), 0xffffffff);
+
 #ifdef _DEBUG
-		Novice::ScreenPrintf(0,0,"JumpCount:%f",player->JumpCounte());
+		Novice::ScreenPrintf(0, 0, "JumpCount:%f", player->JumpCounte());
+		if (player->Attack()) {//攻撃時
+			Novice::ScreenPrintf(0, 20, "Acction:Attack");
+
+		}
+		else if (player->Defence()) {//ガード時
+			Novice::ScreenPrintf(0, 20, "Acction:Defence");
+
+		}
+		else {//攻撃、ガード無し
+			Novice::ScreenPrintf(0, 20, "Acction:None");
+
+		}
 #endif
 
 
