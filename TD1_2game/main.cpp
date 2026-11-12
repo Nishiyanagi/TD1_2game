@@ -323,7 +323,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 
 		}
-		
+
+		if (weapon->IsActive()) {
+			Novice::DrawBox(static_cast<int>(weapon->Pos().x), static_cast<int>(weapon->Pos().y * -1 + 600), static_cast<int>(weapon->Size().x), static_cast<int>(weapon->Size().y), 0.0f, BLACK, kFillModeSolid);
+		}
+
 		Novice::DrawLine(static_cast<int>(line->StartPos().x), static_cast<int>(line->StartPos().y * -1 + 600), static_cast<int>(line->EndPos().x), static_cast<int>(line->EndPos().y * -1 + 600), 0xffffffff);
 
 #ifdef _DEBUG
@@ -340,6 +344,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			Novice::ScreenPrintf(0, 20, "Acction:None");
 			
 		}
+
+		player->Show();
 #endif
 
 
