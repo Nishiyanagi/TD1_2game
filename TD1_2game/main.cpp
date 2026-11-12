@@ -6,7 +6,7 @@
 #include <imgui.h>
 #endif
 
-Line* line = new Line(Vector2(0.0f, 0.0f), Vector2(1280.0f, 0.0f));
+Line* line = new Line(Vector2(0.0f, 0.0f), Vector2(1920.0f, 0.0f));
 
 const char kWindowTitle[] = "LC1B_16_ニシヤナギ_リョウマ_タイトル";
 
@@ -72,7 +72,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		Novice::DrawLine(static_cast<int>(line->StartPos().x), static_cast<int>(line->StartPos().y * -1 + 600), static_cast<int>(line->EndPos().x), static_cast<int>(line->EndPos().y * -1 + 600), 0xffffffff);
 
 #ifdef _DEBUG
-		Novice::ScreenPrintf(0, 0, "JumpCount:%f", player->JumpCounte());
+		Novice::ScreenPrintf(0, 0, "JumpCount:%.1f", player->JumpCounte());
 		if (player->Attack()) {//攻撃時
 			Novice::ScreenPrintf(0, 20, "Acction:Attack");
 
@@ -85,6 +85,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			Novice::ScreenPrintf(0, 20, "Acction:None");
 
 		}
+
+		Novice::ScreenPrintf(0, 40, "HP:%.1f",player->HP());
+
 #endif
 
 
