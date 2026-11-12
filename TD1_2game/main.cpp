@@ -349,7 +349,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			
 		}
 
-		Novice::ScreenPrintf(0, 40, "HP:%.1f",player->HP());
+		player->Show();
 
 #endif
 
