@@ -22,7 +22,7 @@ private:
 		SlamWait,   // 頭上攻撃: 落下前の減速・停止(予兆)
 		SlamFall,   // 頭上攻撃: 落下
 		SlamLand,   // 頭上攻撃: 着地の大きな硬直
-	};
+};
 
 
 	void StartChaseJump(const Vector2& targetPos, bool isBig);
