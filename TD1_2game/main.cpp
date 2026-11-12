@@ -24,7 +24,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Enemy1* enemy1 = new Enemy1(Vector2(1200.0f, 100.0f), Vector2(100.0f, 100.0f), Vector2(0.0f, 0.0f), 100);
 
 	Player* player = new Player(Vector2(640.0f, 50.0f), Vector2(5.0f, 5.0f), Vector2(50.0f, 50.0f),100.0f);
-	Player* player = new Player(Vector2(640.0f, 50.0f), Vector2(5.0f, 5.0f), Vector2(50.0f, 50.0f), 100.0f);
 	Weapon* weapon = new Weapon(Vector2(640.0f, 50.0f), Vector2(50.0f, 25.0f));
 
 	
@@ -63,21 +62,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		player->Defence();
 
-		if (player->attackTimer() >= 90)
-		{
-			if (player->Attack())
-			{
-				weapon->SetActive(true);
-			}
-			else
-			{
-				weapon->SetActive(false);
-			}
-		}
-		else
-		{
-			weapon->SetActive(false);
-		}
+		player->attackTimer();
+
+		weapon->SetActive(player->Attack());
 
 		weapon->IsActive();
 
@@ -129,6 +116,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			Novice::ScreenPrintf(0, 20, "Acction:None");
 
 		}
+
+		player->Show();
+
 #endif
 
 
