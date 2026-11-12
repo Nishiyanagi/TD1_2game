@@ -51,6 +51,7 @@ void Enemy1::Move(const Vector2& targetPos)
 		pos_.x += velocity_.x;
 		pos_.y += velocity_.y;
 		ClampToScreen();
+		ClampToScreen();
 
 		// 着地判定(足元は pos_.y - size_.y)
 		if (velocity_.y < 0.0f && pos_.y - size_.y <= kGroundY) {
@@ -83,6 +84,8 @@ void Enemy1::Move(const Vector2& targetPos)
 		velocity_.x += (targetVx - velocity_.x) * kBlend;
 		velocity_.y += (targetVy - velocity_.y) * kBlend;
 
+		// 着地判定(足元は pos_.y - size_.y)
+		if (velocity_.y < 0.0f && pos_.y - size_.y <= kGroundY) {
 		// 縦と横を同時に動かすので、斜めの弧を描いて頭上へ向かう
 		pos_.x += velocity_.x;
 		pos_.y += velocity_.y;
