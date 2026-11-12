@@ -9,7 +9,7 @@ enum Actions {
 class Player {
 public:
 
-	Player(Vector2 position, Vector2 speed, Vector2 range);
+	Player(Vector2 position, Vector2 speed, Vector2 range,float hp);
 	void Jump(const char* keys, const char* preKeys, Vector2& speed);
 	void Move(const char* keys, Vector2 speed);
 	void Show();
@@ -21,12 +21,15 @@ public:
 	Vector2* Velocity();//速度確認
 	float JumpCounte();//速度確認
 	float attackTimer();//速度確認
+	float HP();//HP確認
 
 private:
 	Vector2 pos_{};
 	Vector2 size_{};
 	Vector2 velocity_{};
 	Vector2 acceleration_{};
+
+	float hp_{};
 
 	float attackTimer_{};
 

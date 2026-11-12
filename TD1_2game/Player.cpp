@@ -3,18 +3,18 @@
 #include "Vector2.h"
 #include <Novice.h>
 
-Player::Player(Vector2 position, Vector2 speed, Vector2 range)
+Player::Player(Vector2 position, Vector2 speed, Vector2 range, float hp)
 	:pos_{ position },
 	velocity_{ speed },
 	size_{ range },
-	acceleration_{ 0.0f,0.5f }
+	acceleration_{ 0.0f,0.5f },
+	hp_{ hp }
 {
 }
 //こんにちわ
 void Player::Jump(const char* keys, const char* preKeys, Vector2& speed) {
 
 	if (keys[DIK_SPACE] && !preKeys[DIK_SPACE]) {
-
 		isJump_ = true;
 		jumpCounte_++;
 		speed.y = 10.0f * (1.0f - jumpCounte_ / 15);
@@ -87,6 +87,9 @@ Vector2* Player::Velocity() {//速度確認
 }
 float  Player::JumpCounte() {//速度確認
 	return jumpCounte_;
+}
+float  Player::HP() {//速度確認
+	return hp_;
 }
 
 float  Player::attackTimer() {//速度確認

@@ -7,7 +7,7 @@
 #include <imgui.h>
 #endif
 
-Line* line = new Line(Vector2(0.0f, 0.0f), Vector2(1280.0f, 0.0f));
+Line* line = new Line(Vector2(0.0f, 0.0f), Vector2(1920.0f, 0.0f));
 
 const char kWindowTitle[] = "LC1B_16_ニシヤナギ_リョウマ_タイトル";
 
@@ -17,7 +17,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	// ライブラリの初期化
 	Novice::Initialize(kWindowTitle, 1920, 1080);
 
-	Player* player = new Player(Vector2(640.0f, 50.0f), Vector2(5.0f, 5.0f), Vector2(50.0f, 50.0f));
+	Player* player = new Player(Vector2(640.0f, 50.0f), Vector2(5.0f, 5.0f), Vector2(50.0f, 50.0f), 100.0f);
 	Weapon* weapon = new Weapon(Vector2(640.0f, 50.0f), Vector2(50.0f, 25.0f));
 
 	// キー入力結果を受け取る箱
@@ -91,7 +91,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		Novice::DrawLine(static_cast<int>(line->StartPos().x), static_cast<int>(line->StartPos().y * -1 + 600), static_cast<int>(line->EndPos().x), static_cast<int>(line->EndPos().y * -1 + 600), 0xffffffff);
 
 #ifdef _DEBUG
-		Novice::ScreenPrintf(0, 0, "JumpCount:%f", player->JumpCounte());
+		Novice::ScreenPrintf(0, 0, "JumpCount:%.1f", player->JumpCounte());
 		if (player->Attack()) {//攻撃時
 			Novice::ScreenPrintf(0, 20, "Acction:Attack");
 
@@ -104,8 +104,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			Novice::ScreenPrintf(0, 20, "Acction:None");
 
 		}
-
-		player->Show();
 #endif
 
 

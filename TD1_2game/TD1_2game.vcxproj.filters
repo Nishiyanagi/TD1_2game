@@ -35,6 +35,9 @@
     <ClCompile Include="Line.cpp">
       <Filter>KamataEngine</Filter>
     </ClCompile>
+    <ClCompile Include="Cooldown.cpp">
+      <Filter>KamataEngine</Filter>
+    </ClCompile>
     <ClCompile Include="Weapon.cpp">
       <Filter>KamataEngine</Filter>
     </ClCompile>
@@ -127,6 +130,5 @@
     <ClInclude Include="Enemy1.h" />
     <ClInclude Include="Random.h" />
     <ClInclude Include="Line.h" />
-    <ClInclude Include="Weapon.h" />
   </ItemGroup>
 </Project>
