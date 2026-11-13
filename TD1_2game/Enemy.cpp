@@ -6,7 +6,7 @@ Enemy::Enemy(Vector2 position, Vector2 size, Vector2 velocity, float hp)
 	: pos_{ position },
 	size_{ size },
 	velocity_{ velocity },
-	hp_{ int(hp) } {
+	hp_{ float(hp) } {
 }
 
 void Enemy::Damage(float amount)
