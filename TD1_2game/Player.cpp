@@ -39,9 +39,9 @@ void Player::Move(const char* keys, Vector2 speed) {
 	if (keys[DIK_A]) {
 		pos_.x -= speed.x;
 	}
-	if (keys[DIK_S]) {
+	/*if (keys[DIK_S]) {
 		pos_.y -= speed.y;
-	}
+	}*/
 }
 
 void Player::Show()
