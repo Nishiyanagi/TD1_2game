@@ -91,8 +91,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		const Rect playerRect = MakeRect(player->Pos(), player->Size());
 		const Rect enemyRect = enemy1->GetRect();
 
-		// 敵 → プレイヤー(接触ダメージ)
-		if (enemy1->IsAttacking() && playerInvincible.IsReady() && IsHit(playerRect, enemyRect)) {
+		// 敵 → プレイヤー(接触ダメージ。敵の状態にかかわらず、重なっていれば入る)
+		if (playerInvincible.IsReady() && IsHit(playerRect, enemyRect)) {
 			player->Damage(kContactDamage);
 			playerInvincible.Start();
 		}
