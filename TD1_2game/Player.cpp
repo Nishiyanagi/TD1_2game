@@ -41,9 +41,9 @@ void Player::Move(const char* keys, Vector2 speed) {
 		pos_.x -= speed.x;
 		isRight_ = false;
 	}
-	if (keys[DIK_S]) {
-		//足場を降りる処理
-	}
+	/*if (keys[DIK_S]) {
+		pos_.y -= speed.y;
+	}*/
 }
 
 void Player::Show()
