@@ -28,9 +28,9 @@ void Weapon::Move(const char* keys, const Vector2 velocity)
 	}
 }
 
-void Weapon::PosReset()
+void Weapon::SetPos(Vector2 pos)
 {
-	pos_ = Vector2(0.0f, 0.0f);
+	pos_ = pos;
 }
 
 Vector2 Weapon::Pos()
