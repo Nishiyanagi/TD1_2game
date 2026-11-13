@@ -19,8 +19,8 @@ public:
 	Vector2 Pos();//場所確認
 	Vector2 Size();//大きさ確認
 	Vector2* Velocity();//速度確認
-	float JumpCounte();//速度確認
-	float attackTimer();//速度確認
+	float JumpCount();//ジャンプ回数確認
+	float attackTimer();//攻撃タイマー確認
 	float HP();//HP確認
 
 private:
@@ -33,7 +33,7 @@ private:
 
 	float attackTimer_{};
 
-	float jumpCounte_{};
+	float jumpCount_{};
 
 	bool isJump_ = false;
 	bool isAttack_ = false;

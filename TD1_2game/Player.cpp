@@ -16,14 +16,14 @@ void Player::Jump(const char* keys, const char* preKeys, Vector2& speed) {
 
 	if (keys[DIK_SPACE] && !preKeys[DIK_SPACE]) {
 		isJump_ = true;
-		jumpCounte_++;
-		speed.y = 10.0f * (1.0f - jumpCounte_ / 15);
+		jumpCount_++;
+		speed.y = 10.0f * (1.0f - jumpCount_ / 15);
 	}
 	if (isJump_) {
 		if ((pos_.y < line->StartPos().y + size_.y || pos_.y < line->EndPos().y + size_.y)) {
 			pos_.y = line->StartPos().y + size_.y;
 			speed.y = 0;
-			jumpCounte_ = 0;
+			jumpCount_ = 0;
 		}
 		else {
 			pos_.y += speed.y;
@@ -85,8 +85,8 @@ Vector2 Player::Size() {//大きさ確認
 Vector2* Player::Velocity() {//速度確認
 	return &velocity_;
 }
-float  Player::JumpCounte() {//速度確認
-	return jumpCounte_;
+float  Player::JumpCount() {//ジャンプ回数確認
+	return jumpCount_;
 }
 float  Player::HP() {//速度確認
 	return hp_;

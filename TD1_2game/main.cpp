@@ -24,8 +24,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Enemy1* enemy1 = new Enemy1(Vector2(1200.0f, 100.0f), Vector2(100.0f, 100.0f), Vector2(0.0f, 0.0f), 100);
 
 	Player* player = new Player(Vector2(640.0f, 50.0f), Vector2(5.0f, 5.0f), Vector2(50.0f, 50.0f),100.0f);
-	Weapon* weapon = new Weapon(Vector2(640.0f, 50.0f), Vector2(50.0f, 25.0f));
+	Weapon* weapon = new Weapon(Vector2(640.0f, 25.0f), Vector2(50.0f, 25.0f), Vector2(5.0f, 5.0f));
 
+	float kWorldOriginY = 800.0f; // ワールド座標系の原点のY座標
 	
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -57,8 +58,16 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #pragma endregion
 
-		player->Move(keys, *player->Velocity());
-		player->Jump(keys, preKeys, *player->Velocity());
+		if (player->Attack())
+		{
+			weapon->Move(keys, weapon->Velocity());
+		}
+		else
+		{
+			weapon->Pos() = player->Pos();
+			player->Jump(keys, preKeys, *player->Velocity());
+			player->Move(keys, *player->Velocity());
+		}
 
 		player->Defence();
 
@@ -78,32 +87,32 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #pragma region Enemy1
 
-		Novice::DrawBox(static_cast<int>(enemy1->Pos().x), static_cast<int>(enemy1->Pos().y * -1 + 600),
+		Novice::DrawBox(static_cast<int>(enemy1->Pos().x), static_cast<int>(enemy1->Pos().y * -1 + kWorldOriginY),
 			static_cast<int>(enemy1->Size().x), static_cast<int>(enemy1->Size().y), 0.0f, 0x40C040ff, kFillModeSolid);
 
 #pragma endregion
 
 		if (player->Attack()) {//攻撃時
-			Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y * -1 + 600), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, 0xD06060ff, kFillModeSolid);
+			Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y * -1 + kWorldOriginY), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, 0xD06060ff, kFillModeSolid);
 
 		}
 		else if (player->Defence()) {//ガード時
-			Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y * -1 + 600), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, 0x6060D0ff, kFillModeSolid);
+			Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y * -1 + kWorldOriginY), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, 0x6060D0ff, kFillModeSolid);
 
 		}
 		else {//攻撃、ガード無し
-			Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y * -1 + 600), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, WHITE, kFillModeSolid);
+			Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y * -1 + kWorldOriginY), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, WHITE, kFillModeSolid);
 
 		}
 
 		if (weapon->IsActive()) {
-			Novice::DrawBox(static_cast<int>(weapon->Pos().x), static_cast<int>(weapon->Pos().y * -1 + 600), static_cast<int>(weapon->Size().x), static_cast<int>(weapon->Size().y), 0.0f, BLACK, kFillModeSolid);
+			Novice::DrawBox(static_cast<int>(weapon->Pos().x), static_cast<int>(weapon->Pos().y * -1 + kWorldOriginY), static_cast<int>(weapon->Size().x), static_cast<int>(weapon->Size().y), 0.0f, BLACK, kFillModeSolid);
 		}
 
-		Novice::DrawLine(static_cast<int>(line->StartPos().x), static_cast<int>(line->StartPos().y * -1 + 600), static_cast<int>(line->EndPos().x), static_cast<int>(line->EndPos().y * -1 + 600), 0xffffffff);
+		Novice::DrawLine(static_cast<int>(line->StartPos().x), static_cast<int>(line->StartPos().y * -1 + kWorldOriginY), static_cast<int>(line->EndPos().x), static_cast<int>(line->EndPos().y * -1 + kWorldOriginY), 0xffffffff);
 
 #ifdef _DEBUG
-		Novice::ScreenPrintf(0, 0, "JumpCount:%.1f", player->JumpCounte());
+		Novice::ScreenPrintf(0, 0, "JumpCount:%.1f", player->JumpCount());
 		if (player->Attack()) {//攻撃時
 			Novice::ScreenPrintf(0, 20, "Acction:Attack");
 
