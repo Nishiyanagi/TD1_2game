@@ -9,11 +9,11 @@ Enemy::Enemy(Vector2 position, Vector2 size, Vector2 velocity, float hp)
 	hp_{ hp } {
 }
 
-void Enemy::Damage(int amount)
+void Enemy::Damage(float amount)
 {
-	if (amount <= 0) { return; }
+	if (amount <= 0.0f) { return; }
 	if (amount >= hp_) {
-		hp_ = 0;
+		hp_ = 0.0f;
 	}
 	else {
 		hp_ -= amount;
