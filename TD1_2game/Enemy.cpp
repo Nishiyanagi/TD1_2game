@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 
-Enemy::Enemy(Vector2 position, Vector2 size, Vector2 velocity, int hp)
+Enemy::Enemy(Vector2 position, Vector2 size, Vector2 velocity, float hp)
 	: pos_{ position },
 	size_{ size },
 	velocity_{ velocity },
