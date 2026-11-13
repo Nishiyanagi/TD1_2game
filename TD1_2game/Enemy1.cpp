@@ -132,6 +132,11 @@ void Enemy1::Move(const Vector2& targetPos)
 	}
 }
 
+bool Enemy1::IsAttacking() const
+{
+	return state_ == State::Jump || state_ == State::SlamFall;
+}
+
 void Enemy1::StartChaseJump(const Vector2& targetPos, bool isBig)
 {
 	isBigJump_ = isBig;

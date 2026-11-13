@@ -1,5 +1,6 @@
 #pragma once
 #include "Vector2.h"
+#include "Collision.h"
 
 class Enemy
 {
@@ -10,6 +11,7 @@ public:
 	int Hp() const { return hp_; }
 	const Vector2& Pos() const { return pos_; }
 	const Vector2& Size() const { return size_; }
+	Rect GetRect() const { return MakeRect(pos_, size_); }
 	void Damage(int amount);
 
 protected:

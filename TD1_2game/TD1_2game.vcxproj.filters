@@ -128,5 +128,7 @@
     <ClInclude Include="Random.h" />
     <ClInclude Include="Line.h" />
     <ClInclude Include="Cooldown.h" />
+    <ClInclude Include="Weapon.h" />
+    <ClInclude Include="Collision.h" />
   </ItemGroup>
 </Project>

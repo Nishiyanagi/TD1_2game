@@ -11,6 +11,9 @@ public:
 	// targetPos: プレイヤーの中心座標
 	void Move(const Vector2& targetPos);
 
+	// 今、プレイヤーに接触ダメージを与える状態か
+	bool IsAttacking() const;
+
 private:
 	enum class State {
 		Idle,       // 待機(溜め)
