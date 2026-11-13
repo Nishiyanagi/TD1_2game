@@ -31,7 +31,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Cooldown playerInvincible{ 60 };   // プレイヤーの被弾後の無敵時間(フレーム)
 	bool weaponHitDone = false;        // 今回の攻撃でもう当てたか(多段ヒット防止)
 	const int kWeaponDamage = 5;
-	const float kContactDamage = 10.0f;
+	const float kContactDamage = 2.0f;
 
 	float kWorldOriginY = 800.0f; // ワールド座標系の原点のY座標
 
