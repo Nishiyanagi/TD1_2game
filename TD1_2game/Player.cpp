@@ -75,6 +75,13 @@ bool Player::Defence() {
 	}
 }
 
+void Player::Damage(float amount)
+{
+	if (amount <= 0.0f) { return; }
+	hp_ -= amount;
+	if (hp_ < 0.0f) { hp_ = 0.0f; }
+}
+
 Vector2 Player::Pos() {//場所確認
 	return pos_;
 }

@@ -15,6 +15,7 @@ public:
 	void Show();
 	bool Attack();
 	bool Defence();
+	void Damage(float amount);
 
 	Vector2 Pos();//場所確認
 	Vector2 Size();//大きさ確認
