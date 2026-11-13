@@ -5,7 +5,7 @@
 class Enemy
 {
 public:
-	Enemy(Vector2 position, Vector2 size, Vector2 velocity, int hp);
+	Enemy(Vector2 position, Vector2 size, Vector2 velocity, float hp);
 	virtual ~Enemy() = default;
 
 	int Hp() const { return hp_; }
