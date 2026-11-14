@@ -71,7 +71,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		}
 		else
 		{
-			weapon->Pos() = player->Pos();
+			weapon->PosReset(player->Pos());
 			player->Jump(keys, preKeys, *player->Velocity());
 			player->Move(keys, *player->Velocity());
 		}
