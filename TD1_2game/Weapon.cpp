@@ -1,4 +1,5 @@
 #include "Weapon.h"
+#include "Player.h"
 #include <Novice.h>
 
 Weapon::Weapon(Vector2 pos, Vector2 size, Vector2 velocity)
@@ -28,7 +29,7 @@ void Weapon::Move(const char* keys, const Vector2 velocity)
 	}
 }
 
-void Weapon::SetPos(Vector2 pos)
+void Weapon::PosReset(const Vector2 pos)
 {
 	pos_ = pos;
 }
