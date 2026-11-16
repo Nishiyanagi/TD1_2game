@@ -20,37 +20,50 @@ kPadButton14 ・・・ L2
 kPadButton15 ・・・ R2
 */
 void Pads::Input() {
-	Novice::GetAnalogInputRight(0, &Rx_, &Ry_);//Rスティックが入力された時の値を返す関数
-	Novice::GetAnalogInputLeft(0, &Lx_, &Ly_);//Lスティックが入力された時の値を返す関数
+	
 
 
 	n_ = 0;
-	
+
 	/*if ( Novice::IsTriggerButton(0, kPadButton14)) {
 
 		n_++;
 
 	}*/
 
-	
-	if (Novice::IsTriggerButton(0, kPadButton8) || Novice::IsTriggerButton(0, kPadButton14)) {//L1かL2を押したら
+
+	if (Novice::IsPressButton(0, kPadButton8) || Novice::IsPressButton(0, kPadButton14)) {//L1かL2を押したら
 
 		n_++;
 
 	}
 
-	if (Novice::IsTriggerButton(0, kPadButton9) || Novice::IsTriggerButton(0, kPadButton15)) {//R1かR2を押したら
+	else if (Novice::IsPressButton(0, kPadButton9) || Novice::IsPressButton(0, kPadButton15)) {//R1かR2を押したら
 
 		n_++;
 
 	}
 	/*
 	*/
-	
+
 
 
 }
 
+
+int Pads::Rx() {
+	return Rx_;
+}
+int Pads::Ry() {
+	return Ry_;
+}
+int* Pads::Lx() {
+	return &Lx_;
+}
+int* Pads::Ly(){
+	return &Ly_;
+}
+	
 
 void Pads::Show() {
 	Novice::ScreenPrintf(0, 100, "n = %d", n_);

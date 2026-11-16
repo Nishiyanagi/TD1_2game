@@ -1,5 +1,6 @@
 #pragma once
 #include "Vector2.h"
+#include "Pad.h"
 
 enum Actions {
 	NONE = 0,
@@ -11,7 +12,7 @@ public:
 
 	Player(Vector2 position, Vector2 speed, Vector2 range,float hp);
 	void Jump(const char* keys, const char* preKeys, Vector2& speed);
-	void Move(const char* keys, Vector2 speed);
+	void Move(const char* keys, Vector2 speed, Pads* pad);
 	void Show();
 	bool Attack();
 	bool Defence();

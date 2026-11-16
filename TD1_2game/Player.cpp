@@ -1,6 +1,7 @@
 #include "Player.h"
 #include "Line.h"
 #include "Vector2.h"
+#include "Pad.h"
 #include <Novice.h>
 
 Player::Player(Vector2 position, Vector2 speed, Vector2 range, float hp)
@@ -20,6 +21,7 @@ void Player::Jump(const char* keys, const char* preKeys, Vector2& speed) {
 		speed.y = 10.0f * (1.0f - jumpCount_ / 15);
 	}
 	if (isJump_) {
+
 		if ((pos_.y < line->StartPos().y + size_.y || pos_.y < line->EndPos().y + size_.y)) {
 			pos_.y = line->StartPos().y + size_.y;
 			speed.y = 0;
@@ -31,7 +33,15 @@ void Player::Jump(const char* keys, const char* preKeys, Vector2& speed) {
 		}
 	}
 }
-void Player::Move(const char* keys, Vector2 speed) {
+void Player::Move(const char* keys, Vector2 speed, Pads* pad) {
+
+
+	Novice::GetAnalogInputLeft(0, pad->Lx(), pad->Ly());//Lスティックが入力された時の値を返す関数
+	speed.x *= static_cast<float>(*pad->Lx()) / 32768;
+	
+	
+pos_.x += speed.x;
+
 
 	if (keys[DIK_D]) {
 		pos_.x += speed.x;
@@ -41,9 +51,12 @@ void Player::Move(const char* keys, Vector2 speed) {
 		pos_.x -= speed.x;
 		isRight_ = false;
 	}
-	/*if (keys[DIK_S]) {
-		pos_.y -= speed.y;
-	}*/
+
+
+
+	if (keys[DIK_S]) {
+		//足場を降りる処理
+	}
 }
 
 void Player::Show()
@@ -51,8 +64,8 @@ void Player::Show()
 	Novice::ScreenPrintf(0, 40, "AttackTimer:%f", attackTimer_);
 }
 
-bool Player::WeaponHit(){
-	
+bool Player::WeaponHit() {
+
 	return false;
 }
 
