@@ -51,6 +51,11 @@ void Player::Show()
 	Novice::ScreenPrintf(0, 40, "AttackTimer:%f", attackTimer_);
 }
 
+bool Player::WeaponHit(){
+	
+	return false;
+}
+
 bool Player::Attack() {
 	if (Novice::IsPressMouse(0)) {
 		if (attackTimer_ >= 300)

@@ -16,6 +16,7 @@ public:
 	bool Attack();
 	bool Defence();
 	void Damage(float amount);
+	bool WeaponHit();//自傷で吹っ飛ぶ時の、ヒット処理
 
 	Vector2 Pos();//場所確認
 	Vector2 Size();//大きさ確認
@@ -41,4 +42,7 @@ private:
 	bool isAttack_ = false;
 	bool isDefence_ = false;
 	bool isRight_ = false;//右向いてるかどうか　true:右向き false:左向き
+
+	bool isAwayAttackWeapon_ = false;//プレイヤー自身の攻撃がプレイヤーから離れたら検知する
+	bool isHitAttackWeapon_ = false;//プレイヤー自身の攻撃がプレイヤーに接触したら検知する
 };
