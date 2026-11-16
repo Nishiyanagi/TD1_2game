@@ -329,6 +329,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		}
 
+		// 武器の描画
 		if (weapon->IsActive()) {
 			Novice::DrawBox(static_cast<int>(weapon->Pos().x), static_cast<int>(weapon->Pos().y * -1 + kWorldOriginY), static_cast<int>(weapon->Size().x), static_cast<int>(weapon->Size().y), 0.0f, BLACK, kFillModeSolid);
 		}
