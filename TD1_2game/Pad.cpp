@@ -48,12 +48,13 @@ void Pads::Input() {
 
 if (Novice::IsTriggerButton(0, kPadButton8) || Novice::IsTriggerButton(0, kPadButton10)) {
 
-	n = 1;
+		n_++;
 
-}
-if (Novice::IsTriggerButton(0, kPadButton9) || Novice::IsTriggerButton(0, kPadButton11)) {
+	}
+	/*
+	*/
+	
 
-	n = 1;
 
 int Pads::Rx() {
 	return Rx_;
@@ -68,11 +69,11 @@ int* Pads::Ly(){
 	return &Ly_;
 }
 
-Novice::GetAnalogInputRight(0, &Rx, &Ry);
-Novice::GetAnalogInputLeft(0, &Lx, &Ly);
 
 void Pads::Show() {
 	Novice::ScreenPrintf(0, 100, "n = %d", n_);
 
+	Novice::ScreenPrintf(0, 200, "Rx = %d,Ry = %d", Rx_, Ry_);
+	Novice::ScreenPrintf(0, 220, "Lx = %d,Ly = %d", Lx_, Ly_);
 
 }

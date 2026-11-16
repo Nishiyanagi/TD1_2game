@@ -357,6 +357,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		Novice::ScreenPrintf(0, 60, "PlayerHP:%.1f", player->HP());
 		Novice::ScreenPrintf(0, 80, "EnemyHP:%.1f", enemy1->Hp());
 
+		pad->Show();
 		player->Show();
 
 #endif
