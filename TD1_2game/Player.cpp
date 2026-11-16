@@ -15,7 +15,7 @@ Player::Player(Vector2 position, Vector2 speed, Vector2 range, float hp)
 //こんにちわ
 void Player::Jump(const char* keys, const char* preKeys, Vector2& speed) {
 
-	if (keys[DIK_SPACE] && !preKeys[DIK_SPACE]) {
+	if (keys[DIK_SPACE] && !preKeys[DIK_SPACE] || Novice::IsTriggerButton(0, kPadButton10)) {
 		isJump_ = true;
 		jumpCount_++;
 		speed.y = 10.0f * (1.0f - jumpCount_ / 15);
@@ -36,11 +36,7 @@ void Player::Jump(const char* keys, const char* preKeys, Vector2& speed) {
 void Player::Move(const char* keys, Vector2 speed, Pads* pad) {
 
 
-	Novice::GetAnalogInputLeft(0, pad->Lx(), pad->Ly());//Lスティックが入力された時の値を返す関数
-	speed.x *= static_cast<float>(*pad->Lx()) / 32768;
 	
-	
-pos_.x += speed.x;
 
 
 	if (keys[DIK_D]) {
@@ -52,7 +48,9 @@ pos_.x += speed.x;
 		isRight_ = false;
 	}
 
-
+Novice::GetAnalogInputLeft(0, pad->Lx(), pad->Ly());//Lスティックが入力された時の値を返す関数
+	speed.x *= static_cast<float>(*pad->Lx()) / 32768;
+	pos_.x += speed.x;
 
 	if (keys[DIK_S]) {
 		//足場を降りる処理
@@ -70,7 +68,7 @@ bool Player::WeaponHit() {
 }
 
 bool Player::Attack() {
-	if (Novice::IsPressMouse(0)) {
+	if (Novice::IsPressMouse(0) || Novice::IsPressButton(0, kPadButton15) || Novice::IsPressButton(0, kPadButton9)) {
 		if (attackTimer_ >= 300)
 		{
 			attackTimer_ = 300;
@@ -87,7 +85,7 @@ bool Player::Attack() {
 	}
 }
 bool Player::Defence() {
-	if (Novice::IsPressMouse(1)) {
+	if (Novice::IsPressMouse(1) || Novice::IsPressButton(0, kPadButton11) ) {
 		return isDefence_ = true;
 	}
 	else {

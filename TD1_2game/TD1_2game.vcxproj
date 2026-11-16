@@ -215,6 +215,7 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
     <ClInclude Include="Pad.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Random.h" />
+    <ClInclude Include="Theta.h" />
     <ClInclude Include="Vector2.h" />
     <ClInclude Include="Weapon.h" />
   </ItemGroup>

@@ -1,5 +1,6 @@
 #pragma once
 #include "Vector2.h"
+#include "Pad.h"
 
 class Weapon
 {
@@ -7,7 +8,7 @@ public:
 	Weapon(Vector2 pos, Vector2 size, Vector2 velocity);
 
 	void SetActive(bool isActive);
-	void Move(const char* keys, const Vector2 velocity);
+	void Move(const char* keys, const Vector2 velocity, Pads* pad);
 	void PosReset(const Vector2 pos);
 
 	Vector2 Pos();//場所確認

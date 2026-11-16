@@ -1,5 +1,7 @@
 #include "Weapon.h"
+#include "Pad.h"
 #include "Player.h"
+#include "Theta.h"
 #include <Novice.h>
 
 Weapon::Weapon(Vector2 pos, Vector2 size, Vector2 velocity)
@@ -13,20 +15,53 @@ void Weapon::SetActive(bool isActive)
 	isActive_ = isActive;
 }
 
-void Weapon::Move(const char* keys, const Vector2 velocity)
+void Weapon::Move(const char* keys, Vector2 velocity, Pads* pad)
 {
-	if (keys[DIK_D]) {
+	int n = 0;
+
+	if (n <= 1) {
+		if (keys[DIK_D] || keys[DIK_A]) {
+			n++;
+			
+			if (keys[DIK_D]) {
+				
+				pos_.x += velocity.x;
+			}
+			if (keys[DIK_A]) {
+				velocity.x *= -1;
+				pos_.x += velocity.x;
+			}
+		}
+
+		if (keys[DIK_W] || keys[DIK_S]) {
+			n++;
+
+			if (keys[DIK_W]) {
+
+				velocity.y *= 1;
+				pos_.y += velocity.y;
+			}
+			if (keys[DIK_S]) {
+				velocity.y *= -1;
+				pos_.y += velocity.y;
+			}
+		}
+
+	}
+	else if (n > 1) {
+		velocity.x *= thetaMove.x;
+		velocity.y *= thetaMove.y;
+
 		pos_.x += velocity.x;
-	}
-	if (keys[DIK_A]) {
-		pos_.x -= velocity.x;
-	}
-	if (keys[DIK_W]) {
 		pos_.y += velocity.y;
 	}
-	if (keys[DIK_S]) {
-		pos_.y -= velocity.y;
-	}
+	Novice::GetAnalogInputLeft(0, pad->Lx(), pad->Ly());//Lスティックが入力された時の値を返す関数
+	velocity.x *= static_cast<float>(*pad->Lx()) / 32768;
+	velocity.y *= static_cast<float>(*pad->Ly()) / 32768;
+
+
+	pos_.x += velocity.x;
+	pos_.y -= velocity.y;
 }
 
 void Weapon::PosReset(const Vector2 pos)

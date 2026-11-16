@@ -137,5 +137,6 @@
     <ClInclude Include="Weapon.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="Pad.h" />
+    <ClInclude Include="Theta.h" />
   </ItemGroup>
 </Project>
