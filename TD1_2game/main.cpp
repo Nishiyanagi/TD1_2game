@@ -13,6 +13,9 @@
 
 Line* line = new Line(Vector2(0.0f, 0.0f), Vector2(1920.0f, 0.0f));
 
+
+static int IsTriggerButton(int stickNo, PadButton button);
+
 const char kWindowTitle[] = "LC1B_16_ニシヤナギ_リョウマ_タイトル";
 
 // Windowsアプリでのエントリーポイント(main関数)
