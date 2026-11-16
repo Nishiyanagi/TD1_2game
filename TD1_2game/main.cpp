@@ -29,6 +29,9 @@ Pads* pad = new Pads;
 
 static int IsTriggerButton(int stickNo, PadButton button);
 
+
+static int IsTriggerButton(int stickNo, PadButton button);
+
 const char kWindowTitle[] = "LC1B_16_ニシヤナギ_リョウマ_タイトル";
 
 // ワールド座標の矩形(pos は左上・Y上向き)をカメラ越しに描画する
