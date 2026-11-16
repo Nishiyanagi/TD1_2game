@@ -72,7 +72,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		if (player->Attack())
 		{
-			weapon->Move(keys, weapon->Velocity());
+			weapon->Move(keys, weapon->Velocity(), pad);
 		}
 		else
 		{
