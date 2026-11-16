@@ -14,6 +14,7 @@
 
 Line* line = new Line(Vector2(0.0f, 0.0f), Vector2(1920.0f, 0.0f));
 
+Pads* pad = new Pads;
 
 static int IsTriggerButton(int stickNo, PadButton button);
 
@@ -31,7 +32,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	Player* player = new Player(Vector2(640.0f, 50.0f), Vector2(5.0f, 5.0f), Vector2(50.0f, 50.0f), 100.0f);
 	Weapon* weapon = new Weapon(Vector2(640.0f, 25.0f), Vector2(50.0f, 25.0f), Vector2(5.0f, 5.0f));
-	Pads* pad = new Pads;
+
 	Cooldown playerInvincible{ 60 };   // プレイヤーの被弾後の無敵時間(フレーム)
 	bool weaponHitDone = false;        // 今回の攻撃でもう当てたか(多段ヒット防止)
 	const int kWeaponDamage = 5;
@@ -77,10 +78,14 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		{
 			weapon->PosReset(player->Pos());
 			player->Jump(keys, preKeys, *player->Velocity());
-			player->Move(keys, *player->Velocity());
+			player->Move(keys, *player->Velocity(),pad);
+			pad->Input();
+			
 		}
 
 		player->Defence();
+
+
 
 		player->attackTimer();
 
@@ -88,7 +93,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		weapon->IsActive();
 
-		pad->Input();
+
 #pragma region Collision
 
 		playerInvincible.Update();
@@ -166,7 +171,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		}
 
+
 		Novice::ScreenPrintf(0, 60, "PlayerHP:%.1f", player->HP());
+		Novice::ScreenPrintf(200, 60, "PlayerSpeed:%.1f %.1f", player->Velocity()->x, player->Velocity()->y);
 		Novice::ScreenPrintf(0, 80, "EnemyHP:%.1f", enemy1->Hp());
 
 		pad->Show();
