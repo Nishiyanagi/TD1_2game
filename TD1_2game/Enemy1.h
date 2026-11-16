@@ -6,10 +6,11 @@ class Enemy1 :
 	public Enemy
 {
 public:
-	Enemy1(Vector2 position, Vector2 size, Vector2 velocity, int hp);
+	Enemy1(Vector2 position, Vector2 size, Vector2 velocity, float hp);
 
 	// targetPos: プレイヤーの中心座標
 	void Move(const Vector2& targetPos);
+
 
 private:
 	enum class State {
@@ -21,7 +22,7 @@ private:
 		SlamFall,   // 頭上攻撃: 落下
 		SlamLand,   // 頭上攻撃: 着地の大きな硬直
 	};
-		
+
 
 	void StartChaseJump(const Vector2& targetPos, bool isBig);
 	void StartSlam();

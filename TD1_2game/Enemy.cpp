@@ -2,18 +2,18 @@
 #include <stdio.h>
 
 
-Enemy::Enemy(Vector2 position, Vector2 size, Vector2 velocity, int hp)
+Enemy::Enemy(Vector2 position, Vector2 size, Vector2 velocity, float hp)
 	: pos_{ position },
 	size_{ size },
 	velocity_{ velocity },
-	hp_{ hp } {
+	hp_{ float(hp) } {
 }
 
-void Enemy::Damage(int amount)
+void Enemy::Damage(float amount)
 {
-	if (amount <= 0) { return; }
+	if (amount <= 0.0f) { return; }
 	if (amount >= hp_) {
-		hp_ = 0;
+		hp_ = 0.0f;
 	}
 	else {
 		hp_ -= amount;
