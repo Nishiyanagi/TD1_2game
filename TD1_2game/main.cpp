@@ -1,5 +1,6 @@
 #include <Novice.h>
 #include "Player.h"
+#include "Pad.h"
 #include "Weapon.h"
 #include "Vector2.h"
 #include "Line.h"
@@ -30,7 +31,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	Player* player = new Player(Vector2(640.0f, 50.0f), Vector2(5.0f, 5.0f), Vector2(50.0f, 50.0f), 100.0f);
 	Weapon* weapon = new Weapon(Vector2(640.0f, 25.0f), Vector2(50.0f, 25.0f), Vector2(5.0f, 5.0f));
-
+	Pads* pad = new Pads;
 	Cooldown playerInvincible{ 60 };   // プレイヤーの被弾後の無敵時間(フレーム)
 	bool weaponHitDone = false;        // 今回の攻撃でもう当てたか(多段ヒット防止)
 	const int kWeaponDamage = 5;
@@ -87,6 +88,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		weapon->IsActive();
 
+		pad->Input();
 #pragma region Collision
 
 		playerInvincible.Update();
@@ -167,6 +169,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		Novice::ScreenPrintf(0, 60, "PlayerHP:%.1f", player->HP());
 		Novice::ScreenPrintf(0, 80, "EnemyHP:%.1f", enemy1->Hp());
 
+		pad->Show();
 		player->Show();
 
 #endif
