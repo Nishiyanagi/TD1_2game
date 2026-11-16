@@ -29,6 +29,7 @@ Pads* pad = new Pads;
 
 static int IsTriggerButton(int stickNo, PadButton button);
 
+Pads* pad = new Pads;
 
 static int IsTriggerButton(int stickNo, PadButton button);
 
@@ -354,7 +355,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			
 		}
 
+
 		Novice::ScreenPrintf(0, 60, "PlayerHP:%.1f", player->HP());
+		Novice::ScreenPrintf(200, 60, "PlayerSpeed:%.1f %.1f", player->Velocity()->x, player->Velocity()->y);
 		Novice::ScreenPrintf(0, 80, "EnemyHP:%.1f", enemy1->Hp());
 
 		pad->Show();

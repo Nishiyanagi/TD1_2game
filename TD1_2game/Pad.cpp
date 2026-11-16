@@ -53,7 +53,7 @@ if (Novice::IsTriggerButton(0, kPadButton8) || Novice::IsTriggerButton(0, kPadBu
 	}
 	/*
 	*/
-	
+
 
 
 int Pads::Rx() {
@@ -69,6 +69,20 @@ int* Pads::Ly(){
 	return &Ly_;
 }
 
+
+int Pads::Rx() {
+	return Rx_;
+}
+int Pads::Ry() {
+	return Ry_;
+}
+int* Pads::Lx() {
+	return &Lx_;
+}
+int* Pads::Ly(){
+	return &Ly_;
+}
+	
 
 void Pads::Show() {
 	Novice::ScreenPrintf(0, 100, "n = %d", n_);

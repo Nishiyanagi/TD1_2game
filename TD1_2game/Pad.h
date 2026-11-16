@@ -16,6 +16,12 @@ public:
 	int* Lx();
 	int* Ly();
 
+
+	int Rx();
+	int Ry();
+	int* Lx();
+	int* Ly();
+
 private:
 
 	int n_{};//入力回数
