@@ -35,12 +35,14 @@ void Player::Move(const char* keys, Vector2 speed) {
 
 	if (keys[DIK_D]) {
 		pos_.x += speed.x;
+		isRight_ = true;
 	}
 	if (keys[DIK_A]) {
 		pos_.x -= speed.x;
+		isRight_ = false;
 	}
 	if (keys[DIK_S]) {
-		pos_.y -= speed.y;
+		//足場を降りる処理
 	}
 }
 
@@ -68,10 +70,10 @@ bool Player::Attack() {
 }
 bool Player::Defence() {
 	if (Novice::IsPressMouse(1)) {
-		return isDefece_ = true;
+		return isDefence_ = true;
 	}
 	else {
-		return isDefece_ = false;
+		return isDefence_ = false;
 	}
 }
 
@@ -88,12 +90,15 @@ Vector2* Player::Velocity() {//速度確認
 float  Player::JumpCount() {//ジャンプ回数確認
 	return jumpCount_;
 }
-float  Player::HP() {//速度確認
+float  Player::HP() {//HP確認
 	return hp_;
 }
 
-float  Player::attackTimer() {//速度確認
+float Player::attackTimer() {//攻撃タイマー確認
 	attackTimer_++;
 	return attackTimer_;
 }
 
+bool Player::isRight() {
+	return isRight_;
+}

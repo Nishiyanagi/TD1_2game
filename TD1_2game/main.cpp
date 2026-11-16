@@ -26,7 +26,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Player* player = new Player(Vector2(640.0f, 50.0f), Vector2(5.0f, 5.0f), Vector2(50.0f, 50.0f),100.0f);
 	Weapon* weapon = new Weapon(Vector2(640.0f, 25.0f), Vector2(50.0f, 25.0f), Vector2(5.0f, 5.0f));
 
-	float kWorldOriginY = 800.0f; // ワールド座標系の原点のY座標
+	//ワールド座標系の原点のY座標
+	float kWorldOriginY = 800.0f; 
 	
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -64,7 +65,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		}
 		else
 		{
-			weapon->SetPos(player->Pos());
+			weapon->SetPos(Vector2(player->Pos().x + player->Size().x * 1.5f, player->Pos().y));
 			player->Jump(keys, preKeys, *player->Velocity());
 			player->Move(keys, *player->Velocity());
 		}
@@ -105,6 +106,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		}
 
+		// 武器の描画
 		if (weapon->IsActive()) {
 			Novice::DrawBox(static_cast<int>(weapon->Pos().x), static_cast<int>(weapon->Pos().y * -1 + kWorldOriginY), static_cast<int>(weapon->Size().x), static_cast<int>(weapon->Size().y), 0.0f, BLACK, kFillModeSolid);
 		}

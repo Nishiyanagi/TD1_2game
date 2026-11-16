@@ -22,6 +22,7 @@ public:
 	float JumpCount();//ジャンプ回数確認
 	float attackTimer();//攻撃タイマー確認
 	float HP();//HP確認
+	bool isRight();//向き確認
 
 private:
 	Vector2 pos_{};
@@ -37,6 +38,6 @@ private:
 
 	bool isJump_ = false;
 	bool isAttack_ = false;
-	bool isDefece_ = false;
-
+	bool isDefence_ = false;
+	bool isRight_ = false;//右向いてるかどうか　true:右向き false:左向き
 };
