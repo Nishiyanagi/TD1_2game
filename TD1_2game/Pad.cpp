@@ -20,8 +20,8 @@ kPadButton14 ・・・ L2
 kPadButton15 ・・・ R2
 */
 void Pads::Input() {
-	Novice::GetAnalogInputRight(0, &Rx_, &Ry_);
-	Novice::GetAnalogInputLeft(0, &Lx_, &Ly_);
+	Novice::GetAnalogInputRight(0, &Rx_, &Ry_);//Rスティックが入力された時の値を返す関数
+	Novice::GetAnalogInputLeft(0, &Lx_, &Ly_);//Lスティックが入力された時の値を返す関数
 
 
 	n_ = 0;
