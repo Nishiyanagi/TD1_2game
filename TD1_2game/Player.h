@@ -13,6 +13,7 @@ public:
 	Player(Vector2 position, Vector2 speed, Vector2 range,float hp);
 	void Jump(const char* keys, const char* preKeys, Vector2& speed);
 	void Move(const char* keys, Vector2 speed, Pads* pad);
+	void ClampX(float minX, float maxX);
 	void Show();
 	bool Attack();
 	bool Defence();

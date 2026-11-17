@@ -44,6 +44,12 @@
     <ClCompile Include="Pad.cpp">
       <Filter>KamataEngine</Filter>
     </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>KamataEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="Matrix3x3.cpp">
+      <Filter>KamataEngine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\KamataEngine\DirectXGame\audio\Audio.h">
@@ -138,5 +144,8 @@
     <ClInclude Include="Collision.h" />
     <ClInclude Include="Pad.h" />
     <ClInclude Include="Theta.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Matrix3x3.h" />
+    <ClInclude Include="World.h" />
   </ItemGroup>
 </Project>

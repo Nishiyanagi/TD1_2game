@@ -159,5 +159,5 @@ void Enemy1::StartSlam()
 
 void Enemy1::ClampToScreen()
 {
-	pos_.x = Clamp(pos_.x, 0.0f, kScreenWidth - size_.x);
+	pos_.x = Clamp(pos_.x, 0.0f, kWorldWidth - size_.x);
 }

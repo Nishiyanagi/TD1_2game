@@ -1,6 +1,7 @@
 #pragma once
 #include "Enemy.h"
 #include "Cooldown.h"
+#include "World.h"
 
 class Enemy1 :
 	public Enemy
@@ -41,7 +42,6 @@ private:
 	// 共通
 	static constexpr float kGravity = 0.8f;
 	static constexpr float kGroundY = 0.0f;        // 地面の高さ(Y上向き)
-	static constexpr float kScreenWidth = 1920.0f;
 
 	// 追尾ジャンプ(小)
 	static constexpr float kSmallJumpY = 16.0f;         // 初速(上向き)
