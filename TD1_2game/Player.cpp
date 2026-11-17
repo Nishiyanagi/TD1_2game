@@ -79,6 +79,13 @@ void Player::ClampX(float minX, float maxX)
 
 }
 
+void Player::ClampX(float minX, float maxX)
+{
+	if (pos_.x < minX) { pos_.x = minX; }
+	if (pos_.x + size_.x > maxX) { pos_.x = maxX - size_.x; }
+
+}
+
 void Player::Show()
 {
 	Novice::ScreenPrintf(0, 40, "AttackTimer:%f", attackTimer_);

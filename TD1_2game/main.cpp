@@ -107,7 +107,16 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Player* player = new Player(Vector2(640.0f, 50.0f), Vector2(5.0f, 5.0f), Vector2(50.0f, 50.0f), 100.0f);
 	Weapon* weapon = new Weapon(Vector2(640.0f, 50.0f), Vector2(50.0f, 25.0f));
 
-	float kWorldOriginY = 800.0f; // ワールド座標系の原点のY座標
+	float kWorldOriginY = 800.0f; // 従来の「ワールドのY=0が画面のどこか」(画面の見た目を変えないために使う)
+
+	// カメラ: 今までと同じ見た目(Y=0が画面の800px)になるよう、カメラ中心のYを決める
+	const float kCameraY = kWorldOriginY - kWindowHeight * 0.5f;
+	Camera camera(
+		Vector2(kWindowWidth * 0.5f, kCameraY),
+		Vector2(static_cast<float>(kWindowWidth), static_cast<float>(kWindowHeight)),
+		kWorldWidth,
+		kCameraY,            // minY: 今の見た目(地面が画面の800px)より下には行かない
+		kCameraY + 1000.0f); // maxY: 上方向にどこまでスクロールするか
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -335,10 +344,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		// 武器の描画
 		if (weapon->IsActive()) {
-			Novice::DrawBox(static_cast<int>(weapon->Pos().x), static_cast<int>(weapon->Pos().y * -1 + kWorldOriginY), static_cast<int>(weapon->Size().x), static_cast<int>(weapon->Size().y), 0.0f, BLACK, kFillModeSolid);
+			DrawWorldBox(camera, weapon->Pos(), weapon->Size(), BLACK);
 		}
 
-		Novice::DrawLine(static_cast<int>(line->StartPos().x), static_cast<int>(line->StartPos().y * -1 + kWorldOriginY), static_cast<int>(line->EndPos().x), static_cast<int>(line->EndPos().y * -1 + kWorldOriginY), 0xffffffff);
+		// 地面
+		DrawWorldLine(camera, line->StartPos(), line->EndPos(), 0xffffffff);
 
 #ifdef _DEBUG
 		Novice::ScreenPrintf(0, 0, "JumpCount:%.1f", player->JumpCount());
@@ -359,6 +369,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		Novice::ScreenPrintf(0, 60, "PlayerHP:%.1f", player->HP());
 		Novice::ScreenPrintf(200, 60, "PlayerSpeed:%.1f %.1f", player->Velocity()->x, player->Velocity()->y);
 		Novice::ScreenPrintf(0, 80, "EnemyHP:%.1f", enemy1->Hp());
+		Novice::ScreenPrintf(0, 120, "Camera:%.1f %.1f", camera.Pos().x, camera.Pos().y);
 
 		pad->Show();
 		player->Show();

@@ -41,6 +41,7 @@ Vector2 Camera::ScreenToWorld(const Vector2& screenPos) const
 void Camera::ClampToWorld()
 {
 	const float halfWidth = screenSize_.x * 0.5f;
+
 	// ステージが画面より狭いときは中央に固定
 	if (worldWidth_ <= screenSize_.x) {
 		pos_.x = worldWidth_ * 0.5f;
