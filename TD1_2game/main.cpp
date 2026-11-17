@@ -8,11 +8,17 @@
 #include "Random.h"
 #include "Collision.h"
 #include "Cooldown.h"
+#include "Camera.h"   // 追加
+#include "World.h"    // 追加
 #ifdef USE_IMGUI
 #include <imgui.h>
 #endif
 
-Line* line = new Line(Vector2(0.0f, 0.0f), Vector2(1920.0f, 0.0f));
+const int kWindowWidth = 1920;   // 追加
+const int kWindowHeight = 1080;  // 追加
+
+// ステージ全体の幅(kWorldWidth)まで伸ばす
+Line* line = new Line(Vector2(0.0f, 0.0f), Vector2(kWorldWidth, 0.0f));
 
 Pads* pad = new Pads;
 
@@ -20,13 +26,34 @@ static int IsTriggerButton(int stickNo, PadButton button);
 
 const char kWindowTitle[] = "LC1B_16_ニシヤナギ_リョウマ_タイトル";
 
+// ワールド座標の矩形(pos は左上・Y上向き)をカメラ越しに描画する
+static void DrawWorldBox(const Camera& camera, const Vector2& pos, const Vector2& size, unsigned int color)
+{
+	const Vector2 leftTop = camera.WorldToScreen(pos);
+	const Vector2 rightBottom = camera.WorldToScreen({ pos.x + size.x, pos.y - size.y });
+
+	Novice::DrawBox(
+		static_cast<int>(leftTop.x), static_cast<int>(leftTop.y),
+		static_cast<int>(rightBottom.x - leftTop.x), static_cast<int>(rightBottom.y - leftTop.y),
+		0.0f, color, kFillModeSolid);
+}
+
+// ワールド座標の線分をカメラ越しに描画する
+static void DrawWorldLine(const Camera& camera, const Vector2& start, const Vector2& end, unsigned int color)
+{
+	const Vector2 s = camera.WorldToScreen(start);
+	const Vector2 e = camera.WorldToScreen(end);
+
+	Novice::DrawLine(
+		static_cast<int>(s.x), static_cast<int>(s.y),
+		static_cast<int>(e.x), static_cast<int>(e.y), color);
+}
+
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	// ライブラリの初期化
-	Novice::Initialize(kWindowTitle, 1920, 1080);
-	float screenWidth = 1920;
-	float screenHeight = 1080;
+	Novice::Initialize(kWindowTitle, kWindowWidth, kWindowHeight);
 
 	Random::Init();
 
@@ -40,7 +67,16 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	const int kWeaponDamage = 5;
 	const float kContactDamage = 2.0f;
 
-	float kWorldOriginY = 800.0f; // ワールド座標系の原点のY座標
+	float kWorldOriginY = 800.0f; // 従来の「ワールドのY=0が画面のどこか」(画面の見た目を変えないために使う)
+
+	// カメラ: 今までと同じ見た目(Y=0が画面の800px)になるよう、カメラ中心のYを決める
+	const float kCameraY = kWorldOriginY - kWindowHeight * 0.5f;
+	Camera camera(
+		Vector2(kWindowWidth * 0.5f, kCameraY),
+		Vector2(static_cast<float>(kWindowWidth), static_cast<float>(kWindowHeight)),
+		kWorldWidth,
+		kCameraY,            // minY: 今の見た目(地面が画面の800px)より下には行かない
+		kCameraY + 1000.0f); // maxY: 上方向にどこまでスクロールするか
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -102,7 +138,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		player->Defence();
 
-		weapon->SetActive(player->Attack(weapon->Pos(), weapon->Size(), screenWidth, screenHeight) || player->isSingleAttack());
+		// 追加: プレイヤーがステージの外に出ないようにする(Player に ClampX を追加する必要あり)
+		player->ClampX(0.0f, kWorldWidth);
+
+		player->attackTimer();
+
+		weapon->SetActive(player->Attack());
 
 		weapon->IsActive();
 
@@ -134,6 +175,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #pragma endregion
 
+		// 追加: カメラの更新(プレイヤーの位置が確定した後、描画の前に行う)
+		camera.Update(Vector2(
+			player->Pos().x + player->Size().x * 0.5f,
+			player->Pos().y - player->Size().y * 0.5f));
+
 		///
 		/// ↑更新処理ここまで
 		///
@@ -142,32 +188,34 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓描画処理ここから
 		///
 
+		// 【仮】スクロールが分かりやすいよう、ステージに縦線を引く(不要になったら消してください)
+		for (float x = 0.0f; x <= kWorldWidth; x += 240.0f) {
+			DrawWorldLine(camera, Vector2(x, 1000.0f), Vector2(x, 0.0f), 0x404040ff);
+		}
+
 #pragma region Enemy1
 
-		Novice::DrawBox(static_cast<int>(enemy1->Pos().x), static_cast<int>(enemy1->Pos().y * -1 + kWorldOriginY),
-			static_cast<int>(enemy1->Size().x), static_cast<int>(enemy1->Size().y), 0.0f, 0x40C040ff, kFillModeSolid);
+		DrawWorldBox(camera, enemy1->Pos(), enemy1->Size(), 0x40C040ff);
 
 #pragma endregion
 
-		if (player->Attack(weapon->Pos(), weapon->Size(), screenWidth, screenHeight)) {//攻撃時
-			Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y * -1 + kWorldOriginY), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, 0xD06060ff, kFillModeSolid);
-
+		if (player->Attack()) {//攻撃時
+			DrawWorldBox(camera, player->Pos(), player->Size(), 0xD06060ff);
 		}
 		else if (player->Defence()) {//ガード時
-			Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y * -1 + kWorldOriginY), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, 0x6060D0ff, kFillModeSolid);
-
+			DrawWorldBox(camera, player->Pos(), player->Size(), 0x6060D0ff);
 		}
 		else {//攻撃、ガード無し
-			Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y * -1 + kWorldOriginY), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, WHITE, kFillModeSolid);
-
+			DrawWorldBox(camera, player->Pos(), player->Size(), WHITE);
 		}
 
 		// 武器の描画
 		if (weapon->IsActive()) {
-			Novice::DrawBox(static_cast<int>(weapon->Pos().x), static_cast<int>(weapon->Pos().y * -1 + kWorldOriginY), static_cast<int>(weapon->Size().x), static_cast<int>(weapon->Size().y), 0.0f, BLACK, kFillModeSolid);
+			DrawWorldBox(camera, weapon->Pos(), weapon->Size(), BLACK);
 		}
 
-		Novice::DrawLine(static_cast<int>(line->StartPos().x), static_cast<int>(line->StartPos().y * -1 + kWorldOriginY), static_cast<int>(line->EndPos().x), static_cast<int>(line->EndPos().y * -1 + kWorldOriginY), 0xffffffff);
+		// 地面
+		DrawWorldLine(camera, line->StartPos(), line->EndPos(), 0xffffffff);
 
 #ifdef _DEBUG
 		Novice::ScreenPrintf(0, 0, "JumpCount:%.1f", player->JumpCount());
@@ -188,6 +236,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		Novice::ScreenPrintf(0, 60, "PlayerHP:%.1f", player->HP());
 		Novice::ScreenPrintf(200, 60, "PlayerSpeed:%.1f %.1f", player->Velocity()->x, player->Velocity()->y);
 		Novice::ScreenPrintf(0, 80, "EnemyHP:%.1f", enemy1->Hp());
+		Novice::ScreenPrintf(0, 120, "Camera:%.1f %.1f", camera.Pos().x, camera.Pos().y);
 
 		pad->Show();
 		player->Show();
