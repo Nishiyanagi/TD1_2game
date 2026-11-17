@@ -13,9 +13,18 @@ Player::Player(Vector2 position, Vector2 speed, Vector2 range, float hp)
 {
 }
 //こんにちわ
+ 
+bool Player::Defence() {
+	if (Novice::IsPressMouse(1) || Novice::IsPressButton(0, kPadButton11) ) {
+		return isDefence_ = true;
+	}
+	else {
+		return isDefence_ = false;
+	}
+}
 void Player::Jump(const char* keys, const char* preKeys, Vector2& speed) {
 
-	if (keys[DIK_SPACE] && !preKeys[DIK_SPACE] || Novice::IsTriggerButton(0, kPadButton10)) {
+	if ((keys[DIK_SPACE] && !preKeys[DIK_SPACE] || Novice::IsTriggerButton(0, kPadButton10))&& !Player::Defence()) {
 		isJump_ = true;
 		jumpCount_++;
 		speed.y = 10.0f * (1.0f - jumpCount_ / 15);
@@ -84,14 +93,7 @@ bool Player::Attack() {
 		return isAttack_ = false;
 	}
 }
-bool Player::Defence() {
-	if (Novice::IsPressMouse(1) || Novice::IsPressButton(0, kPadButton11) ) {
-		return isDefence_ = true;
-	}
-	else {
-		return isDefence_ = false;
-	}
-}
+
 
 void Player::Damage(float amount)
 {
