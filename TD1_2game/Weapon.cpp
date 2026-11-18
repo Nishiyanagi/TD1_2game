@@ -68,9 +68,9 @@ void Weapon::SingleAttack(Vector2 velocity, Vector2 mouseCursor, Vector2 ScrollP
 	float angle = {};
 	
 	if (angle == 0.0f) {
-
+angle = atan2f(mouseCursor.y , mouseCursor.x + ScrollPos.x);
+	
 	}
-	angle = atan2f(mouseCursor.y , mouseCursor.x + ScrollPos.x);
 	
 	
 	pos_.x += velocity.x * cosf(angle);
