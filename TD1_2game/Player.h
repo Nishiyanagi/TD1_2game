@@ -18,6 +18,7 @@ public:
 	bool Attack(Vector2 weaponPos, Vector2 weaponSize, float screenWidth, float screenHeight);
 	bool Defence();
 	void Damage(float amount);
+	Vector2 GetCursorDirection(float kWorldOriginY);//プレイヤーの向いてる方向をマウスカーソルを追尾する関数
 	bool WeaponHit();//自傷で吹っ飛ぶ時の、ヒット処理
 	void Heal(float amount);
 
@@ -35,6 +36,7 @@ private:
 	Vector2 size_{};
 	Vector2 velocity_{};
 	Vector2 acceleration_{};
+
 
 	float hp_{};
 	float maxHp_{};   // 最大HP(回復の上限)
