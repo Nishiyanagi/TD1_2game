@@ -109,8 +109,8 @@ bool Player::Attack() {
 	if (Novice::IsPressMouse(0) || Novice::IsPressButton(0, kPadButton15) || Novice::IsPressButton(0, kPadButton9)) {
 		if (attackTimer_ >= 300)
 		{
-			attackTimer_ = 300;
-			return isAttack_ = false;
+			attackTimer_ = 0;
+			return isAttack_ = false, isSingleAttack_ = false;
 		}
 		else
 		{
@@ -122,8 +122,8 @@ bool Player::Attack() {
 		{
 			isSingleAttack_ = true;
 		}
-		if (weaponPos.x >= screenWidth + weaponSize.x || weaponPos.x <= -weaponSize.x ||
-			weaponPos.y >= screenHeight + weaponSize.y || weaponPos.y <= -weaponSize.y)
+		if ((weaponPos.x >= screenWidth + weaponSize.x || weaponPos.x <= -weaponSize.x ||
+			weaponPos.y >= screenHeight + weaponSize.y || weaponPos.y <= -weaponSize.y) ) 
 		{
 			isSingleAttack_ = false;
 		}
@@ -174,4 +174,8 @@ bool Player::isRight() {
 
 bool Player::isSingleAttack() {
 	return isSingleAttack_;
+}
+bool Player::SetSingleAttack(bool isSingleAttack) {
+
+	return isSingleAttack_ = isSingleAttack;
 }

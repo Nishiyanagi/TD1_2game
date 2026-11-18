@@ -22,6 +22,7 @@ public:
 	bool Defence();
 	void Damage(float amount);
 	float SetAttackTimer(float times);//攻撃タイマーを入力
+	bool SetSingleAttack(bool isSingleAttack);//攻撃タイマーを入力
 	Vector2 GetCursorDirection(Vector2 Pos);//プレイヤーの向いてる方向をマウスカーソルを追尾する関数
 	bool WeaponHit();//自傷で吹っ飛ぶ時の、ヒット処理
 	void Heal(float amount);
