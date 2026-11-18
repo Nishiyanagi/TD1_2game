@@ -68,6 +68,24 @@ void Player::ClampX(float minX, float maxX)
 
 }
 
+
+Vector2 Player::GetCursorDirection(float kWorldOriginY) {
+	int moucePositionX{};
+	int moucePositionY{};
+	Vector2 playerInversePos{};
+	Vector2 mouceDirection{};
+	Novice::GetMousePosition(&moucePositionX,&moucePositionY);//マウスのポジション取得
+
+	playerInversePos = { pos_.x,pos_.y * -1 };
+
+	mouceDirection.x = (static_cast<float>(moucePositionX) - playerInversePos.x) - size_.x * 0.5f;
+	mouceDirection.y = ((static_cast<float>(moucePositionY) - playerInversePos.y) * -1 + kWorldOriginY + size_.y * 0.5f);
+
+	Novice::ScreenPrintf(200, 0, "mouceDirection.x:%.1f", mouceDirection.x);
+	Novice::ScreenPrintf(200, 20, "mouceDirection.y:%.1f", mouceDirection.y);
+	return mouceDirection;
+}
+
 void Player::Show()
 {
 	Novice::ScreenPrintf(0, 40, "AttackTimer:%f", attackTimer_);
