@@ -98,7 +98,7 @@ bool Player::Attack(Vector2 weaponPos, Vector2 weaponSize, float screenWidth, fl
 		}
 	}
 	else {
-		if (attackTimer_ >= 2 && attackTimer_ <= 6)
+		if (attackTimer_ >= 2 && attackTimer_ <= 12)
 		{
 			isSingleAttack_ = true;
 		}
