@@ -175,6 +175,8 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Cooldown.cpp" />
+    <ClCompile Include="HealDrop.cpp" />
+    <ClCompile Include="HealFlask.cpp" />
     <ClCompile Include="Line.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="Enemy1.cpp" />
@@ -187,6 +189,7 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
     <ClCompile Include="Pad.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Random.cpp" />
+    <ClCompile Include="RegenEffect.cpp" />
     <ClCompile Include="Weapon.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -220,6 +223,8 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="Cooldown.h" />
+    <ClInclude Include="HealDrop.h" />
+    <ClInclude Include="HealFlask.h" />
     <ClInclude Include="Line.h" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="Enemy1.h" />
@@ -227,6 +232,7 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
     <ClInclude Include="Pad.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Random.h" />
+    <ClInclude Include="RegenEffect.h" />
     <ClInclude Include="Theta.h" />
     <ClInclude Include="Vector2.h" />
     <ClInclude Include="Weapon.h" />
