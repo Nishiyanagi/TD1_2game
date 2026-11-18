@@ -1,7 +1,10 @@
 #include "Camera.h"
+#include "Player.h"
+#include <Novice.h>
 
 Camera::Camera(Vector2 position, Vector2 screenSize, float worldWidth, float minY, float maxY)
 	: pos_{ position },
+	scrollPos_{0.0f,0.0f},
 	screenSize_{ screenSize },
 	worldWidth_{ worldWidth },
 	minY_{ minY },
@@ -14,13 +17,21 @@ Camera::Camera(Vector2 position, Vector2 screenSize, float worldWidth, float min
 void Camera::Update(const Vector2& targetPos)
 {
 	// 横だけ追従する(縦は固定)。ガクッとならないよう、少しずつ近づける
-	pos_.x += (targetPos.x - pos_.x) * kFollow;
-	pos_.y += (targetPos.y - pos_.y) * kFollow;
+	pos_.x += (targetPos.x - pos_.x)* kFollow;
 
+	pos_.y += (targetPos.y - pos_.y) * kFollow;
+	
+	scrollPos_.x += (targetPos.x - pos_.x) * kFollow;
+	scrollPos_.y += (targetPos.y - pos_.y) * kFollow;
+
+	
 	ClampToWorld();
 	UpdateMatrix();
 }
 
+Vector2 Camera::ScrollPos() {
+	return scrollPos_;
+}
 Vector2 Camera::WorldToScreen(const Vector2& worldPos) const
 {
 	return Transform(worldPos, vpMatrix_);
@@ -34,7 +45,6 @@ Vector2 Camera::ScreenToWorld(const Vector2& screenPos) const
 void Camera::ClampToWorld()
 {
 	const float halfWidth = screenSize_.x * 0.5f;
-
 	// ステージが画面より狭いときは中央に固定
 	if (worldWidth_ <= screenSize_.x) {
 		pos_.x = worldWidth_ * 0.5f;
@@ -47,6 +57,7 @@ void Camera::ClampToWorld()
 	else if (pos_.x > worldWidth_ - halfWidth) {
 		pos_.x = worldWidth_ - halfWidth;
 	}
+	Novice::ScreenPrintf(500, 0, "worldWidth_:%f", worldWidth_);
 
 	// 縦の範囲を制限
 	if (pos_.y < minY_) { pos_.y = minY_; }

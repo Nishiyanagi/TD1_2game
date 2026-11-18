@@ -9,7 +9,7 @@ public:
 
 	void SetActive(bool isActive);
 	void Move(const char* keys, const Vector2 velocity, Pads* pad);
-	void SingleAttack(const Vector2 velocity/*, Pads* pad*/);
+	void SingleAttack(const Vector2 velocity, Vector2 mouseCursor, Vector2 ScrollPos/*, Pads* pad*/);
 	void PosReset(const Vector2 pos);
 
 	Vector2 Pos();//場所確認
