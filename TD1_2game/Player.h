@@ -1,5 +1,6 @@
 #pragma once
 #include "Vector2.h"
+#include "Camera.h"
 #include "Pad.h"
 
 enum Actions {
@@ -7,10 +8,12 @@ enum Actions {
 	ATTACK = 1,
 	DEFENCE = 2
 };
+class Camera;
+
 class Player {
 public:
 
-	Player(Vector2 position, Vector2 speed, Vector2 range,float hp);
+	Player(Vector2 position, Vector2 speed, Vector2 range,float hp,Camera* camera);
 	void Jump(const char* keys, const char* preKeys, Vector2& speed);
 	void Move(const char* keys, Vector2 speed, Pads* pad);
 	void ClampX(float minX, float maxX);
@@ -18,7 +21,8 @@ public:
 	bool Attack(Vector2 weaponPos, Vector2 weaponSize, float screenWidth, float screenHeight);
 	bool Defence();
 	void Damage(float amount);
-	Vector2 GetCursorDirection(float kWorldOriginY);//プレイヤーの向いてる方向をマウスカーソルを追尾する関数
+	float SetAttackTimer(float times);//攻撃タイマーを入力
+	Vector2 GetCursorDirection(Vector2 Pos);//プレイヤーの向いてる方向をマウスカーソルを追尾する関数
 	bool WeaponHit();//自傷で吹っ飛ぶ時の、ヒット処理
 	void Heal(float amount);
 
@@ -37,6 +41,7 @@ private:
 	Vector2 velocity_{};
 	Vector2 acceleration_{};
 
+	Camera* camera_{};
 
 	float hp_{};
 	float maxHp_{};   // 最大HP(回復の上限)

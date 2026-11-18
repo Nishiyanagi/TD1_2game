@@ -23,11 +23,13 @@ public:
 
 	const Vector2& Pos() const { return pos_; }
 
+	Vector2 ScrollPos();
 private:
 	void ClampToWorld();   // カメラがステージの外を映さないようにする
 	void UpdateMatrix();   // ビュー × 正射影 × ビューポート を作り直す
 
 	Vector2 pos_{};          // カメラの中心(ワールド座標)
+	Vector2 scrollPos_{};
 	Vector2 screenSize_{};
 	float worldWidth_ = 0.0f;
 	Matrix3x3 vpMatrix_{};   // ワールド → スクリーンの合成行列

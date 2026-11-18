@@ -41,6 +41,7 @@ static void DrawWorldBox(const Camera& camera, const Vector2& pos, const Vector2
 		static_cast<int>(leftTop.x), static_cast<int>(leftTop.y),
 		static_cast<int>(rightBottom.x - leftTop.x), static_cast<int>(rightBottom.y - leftTop.y),
 		0.0f, color, kFillModeSolid);
+
 }
 
 // ワールド座標の線分をカメラ越しに描画する
@@ -53,6 +54,8 @@ static void DrawWorldLine(const Camera& camera, const Vector2& start, const Vect
 		static_cast<int>(s.x), static_cast<int>(s.y),
 		static_cast<int>(e.x), static_cast<int>(e.y), color);
 }
+Camera* camera;
+Player* player;
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
@@ -64,14 +67,25 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	Enemy1* enemy1 = new Enemy1(Vector2(1200.0f, 100.0f), Vector2(100.0f, 100.0f), Vector2(0.0f, 0.0f), 100.0f);
 
-	Player* player = new Player(Vector2(640.0f, 50.0f), Vector2(5.0f, 5.0f), Vector2(50.0f, 50.0f), 100.0f);
 	Weapon* weapon = new Weapon(Vector2(640.0f, 25.0f), Vector2(50.0f, 25.0f), Vector2(5.0f, 5.0f));
 
 	Cooldown playerInvincible{ 60 };   // プレイヤーの被弾後の無敵時間(フレーム)
 	bool weaponHitDone = false;        // 今回の攻撃でもう当てたか(多段ヒット防止)
 	const int kWeaponDamage = 5;
 	const float kContactDamage = 2.0f;
+	float kWorldOriginY = 800.0f; // 従来の「ワールドのY=0が画面のどこか」(画面の見た目を変えないために使う)
 
+	// カメラ: 今までと同じ見た目(Y=0が画面の800px)になるよう、カメラ中心のYを決める
+	const float kCameraY = kWorldOriginY - kWindowHeight * 0.5f;
+
+	camera = new Camera(
+		Vector2(kWindowWidth * 0.5f, kCameraY),
+		Vector2(static_cast<float>(kWindowWidth), static_cast<float>(kWindowHeight)),
+		kWorldWidth,
+		kCameraY,            // minY: 今の見た目(地面が画面の800px)より下には行かない
+		kCameraY + 1000.0f); // maxY: 上方向にどこまでスクロールするか
+
+	player = new Player(Vector2(640.0f, 50.0f), Vector2(5.0f, 5.0f), Vector2(50.0f, 50.0f), 100.0f, camera);
 	// 回復(数値はここで調整)
 	const int kFlaskCooldown = 600;       // 常備の回復のクールタイム(フレーム。600 = 10秒)
 	const float kFlaskAmount = 20.0f;     // 常備の回復の回復量
@@ -84,16 +98,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	RegenEffect regen(kRegenFrames, kRegenTickInterval, kRegenTickAmount);
 	std::vector<HealDrop> drops;
 
-	float kWorldOriginY = 800.0f; // 従来の「ワールドのY=0が画面のどこか」(画面の見た目を変えないために使う)
-
-	// カメラ: 今までと同じ見た目(Y=0が画面の800px)になるよう、カメラ中心のYを決める
-	const float kCameraY = kWorldOriginY - kWindowHeight * 0.5f;
-	Camera camera(
-		Vector2(kWindowWidth * 0.5f, kCameraY),
-		Vector2(static_cast<float>(kWindowWidth), static_cast<float>(kWindowHeight)),
-		kWorldWidth,
-		kCameraY,            // minY: 今の見た目(地面が画面の800px)より下には行かない
-		kCameraY + 1000.0f); // maxY: 上方向にどこまでスクロールするか
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -140,7 +144,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				weapon->PosReset(player->Pos());
 			}
 
-			player->GetCursorDirection( kWorldOriginY);
+			player->GetCursorDirection(weapon->Pos());
 			player->Jump(keys, preKeys, *player->Velocity());
 			if (!player->Defence()) {
 				player->Move(keys, *player->Velocity(), pad);
@@ -151,7 +155,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		if (player->isSingleAttack())
 		{
-			weapon->SingleAttack(weapon->Velocity()/*, pad*/);
+			weapon->SingleAttack(weapon->Velocity(), player->GetCursorDirection(weapon->Pos()), camera->ScrollPos()/*, pad*/);
 		}
 
 		player->Defence();
@@ -193,6 +197,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 						enemy1->Pos().y - enemy1->Size().y * 0.5f)));
 				}
 			}
+			else if (weaponHitDone) {
+
+				weapon->SetActive(false);
+				player->SetAttackTimer(300.0f);
+			}
 		}
 		else {
 			weaponHitDone = false;
@@ -227,9 +236,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 #pragma endregion
 
 		// 追加: カメラの更新(プレイヤーの位置が確定した後、描画の前に行う)
-		camera.Update(Vector2(
+		camera->Update(Vector2(
 			player->Pos().x + player->Size().x * 0.5f,
 			player->Pos().y - player->Size().y * 0.5f));
+
 
 		///
 		/// ↑更新処理ここまで
@@ -243,41 +253,41 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		// 【仮】スクロールが分かりやすいよう、ステージに縦線を引く(不要になったら消してください)
 		for (float x = 0.0f; x <= kWorldWidth; x += 240.0f) {
-			DrawWorldLine(camera, Vector2(x, 800.0f), Vector2(x, 0.0f), 0x404040ff);
+			DrawWorldLine(*camera, Vector2(x, 800.0f), Vector2(x, 0.0f), 0x404040ff);
 		}
 
 #endif // DEBUG	
 
 #pragma region Enemy1
 
-		DrawWorldBox(camera, enemy1->Pos(), enemy1->Size(), 0x40C040ff);
+		DrawWorldBox(*camera, enemy1->Pos(), enemy1->Size(), 0x40C040ff);
 
 #pragma endregion
 
 		// 回復アイテム(ドロップ)
 		for (const HealDrop& drop : drops) {
 			if (drop.ShouldDraw()) {
-				DrawWorldBox(camera, drop.Pos(), drop.Size(), 0x60FF90ff);
+				DrawWorldBox(*camera, drop.Pos(), drop.Size(), 0x60FF90ff);
 			}
 		}
 
 		if (player->Attack(weapon->Pos(), weapon->Size(), kWindowWidth, kWindowHeight)) {//攻撃時
-			DrawWorldBox(camera, player->Pos(), player->Size(), 0xD06060ff);
+			DrawWorldBox(*camera, player->Pos(), player->Size(), 0xD06060ff);
 		}
 		else if (player->Defence()) {//ガード時
-			DrawWorldBox(camera, player->Pos(), player->Size(), 0x6060D0ff);
+			DrawWorldBox(*camera, player->Pos(), player->Size(), 0x6060D0ff);
 		}
 		else {//攻撃、ガード無し
-			DrawWorldBox(camera, player->Pos(), player->Size(), WHITE);
+			DrawWorldBox(*camera, player->Pos(), player->Size(), WHITE);
 		}
 
 		// 武器の描画
 		if (weapon->IsActive()) {
-			DrawWorldBox(camera, weapon->Pos(), weapon->Size(), BLACK);
+			DrawWorldBox(*camera, weapon->Pos(), weapon->Size(), BLACK);
 		}
 
 		// 地面
-		DrawWorldLine(camera, line->StartPos(), line->EndPos(), 0xffffffff);
+		DrawWorldLine(*camera, line->StartPos(), line->EndPos(), 0xffffffff);
 
 #ifdef _DEBUG
 		Novice::ScreenPrintf(0, 0, "JumpCount:%.1f", player->JumpCount());
@@ -298,7 +308,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		Novice::ScreenPrintf(0, 60, "PlayerHP:%.1f", player->HP());
 		Novice::ScreenPrintf(200, 60, "PlayerSpeed:%.1f %.1f", player->Velocity()->x, player->Velocity()->y);
 		Novice::ScreenPrintf(0, 80, "EnemyHP:%.1f", enemy1->Hp());
-		Novice::ScreenPrintf(0, 120, "Camera:%.1f %.1f", camera.Pos().x, camera.Pos().y);
+		Novice::ScreenPrintf(0, 120, "Camera:%.1f %.1f", camera->Pos().x, camera->Pos().y);
 		Novice::ScreenPrintf(0, 140, "Flask:%s  Regen:x%d", flask.IsReady() ? "READY" : "COOLDOWN", regen.Stacks());
 
 		pad->Show();

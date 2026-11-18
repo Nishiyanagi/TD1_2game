@@ -63,9 +63,25 @@ void Weapon::Move(const char* keys, Vector2 velocity, Pads* pad)
 	pos_.y -= velocity.y;
 }
 
-void Weapon::SingleAttack(Vector2 velocity/*, Pads* pad*/)
+void Weapon::SingleAttack(Vector2 velocity, Vector2 mouseCursor, Vector2 ScrollPos/*, Pads* pad*/)
 {
-	pos_.y += velocity.y;
+	float angle = {};
+	
+	if (angle == 0.0f) {
+
+	}
+	angle = atan2f(mouseCursor.y , mouseCursor.x + ScrollPos.x);
+	
+	
+	pos_.x += velocity.x * cosf(angle);
+	pos_.y += velocity.y * sinf(angle);
+
+	
+	Novice::ScreenPrintf(500, 40, "weaponPos:%.1f", pos_.x);
+	Novice::ScreenPrintf(500, 60, "weaponPos:%.1f", pos_.y);
+	Novice::ScreenPrintf(500, 90, "cosAngle:%.1f", cosf(angle));
+	Novice::ScreenPrintf(500, 110, "sinAngle:%.1f", sinf(angle));
+
 }
 
 void Weapon::PosReset(const Vector2 pos)
