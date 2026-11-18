@@ -109,15 +109,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	float kWorldOriginY = 800.0f; // 従来の「ワールドのY=0が画面のどこか」(画面の見た目を変えないために使う)
 
-	// カメラ: 今までと同じ見た目(Y=0が画面の800px)になるよう、カメラ中心のYを決める
-	const float kCameraY = kWorldOriginY - kWindowHeight * 0.5f;
-	Camera camera(
-		Vector2(kWindowWidth * 0.5f, kCameraY),
-		Vector2(static_cast<float>(kWindowWidth), static_cast<float>(kWindowHeight)),
-		kWorldWidth,
-		kCameraY,            // minY: 今の見た目(地面が画面の800px)より下には行かない
-		kCameraY + 1000.0f); // maxY: 上方向にどこまでスクロールするか
-
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
 	char preKeys[256] = { 0 };
@@ -163,7 +154,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				weapon->PosReset(player->Pos());
 			}
 
-			player->GetCursorDirection( kWorldOriginY);
+			player->GetCursorDirection(weapon->Pos());
 			player->Jump(keys, preKeys, *player->Velocity());
 			if (!player->Defence()) {
 				player->Move(keys, *player->Velocity(), pad);
@@ -217,6 +208,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 						enemy1->Pos().x + enemy1->Size().x * 0.5f,
 						enemy1->Pos().y - enemy1->Size().y * 0.5f)));
 				}
+			}
+			else if (weaponHitDone) {
+
+				weapon->SetActive(false);
+				player->SetAttackTimer(300.0f);
 			}
 			else if (weaponHitDone ) {
 					weaponHitTimer.Update();
@@ -293,6 +289,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			if (drop.ShouldDraw()) {
 				DrawWorldBox(*camera, drop.Pos(), drop.Size(), 0x60FF90ff);
 			}
+				DrawWorldBox(*camera, drop.Pos(), drop.Size(), 0x60FF90ff);
+			}
 		}
 
 		if (player->Attack(weapon->Pos(), mouseDirection)) {//攻撃時
@@ -345,11 +343,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		// 武器の描画
 		if (weapon->IsActive()) {
-			DrawWorldBox(camera, weapon->Pos(), weapon->Size(), BLACK);
+			DrawWorldBox(*camera, weapon->Pos(), weapon->Size(), BLACK);
 		}
 
 		// 地面
-		DrawWorldLine(camera, line->StartPos(), line->EndPos(), 0xffffffff);
+		DrawWorldLine(*camera, line->StartPos(), line->EndPos(), 0xffffffff);
 
 #ifdef _DEBUG
 		Novice::ScreenPrintf(0, 0, "JumpCount:%.1f", player->JumpCount());
@@ -370,7 +368,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		Novice::ScreenPrintf(0, 60, "PlayerHP:%.1f", player->HP());
 		Novice::ScreenPrintf(200, 60, "PlayerSpeed:%.1f %.1f", player->Velocity()->x, player->Velocity()->y);
 		Novice::ScreenPrintf(0, 80, "EnemyHP:%.1f", enemy1->Hp());
-		Novice::ScreenPrintf(0, 120, "Camera:%.1f %.1f", camera.Pos().x, camera.Pos().y);
+		Novice::ScreenPrintf(0, 120, "Camera:%.1f %.1f", camera->Pos().x, camera->Pos().y);
 		Novice::ScreenPrintf(0, 140, "Flask:%s  Regen:x%d", flask.IsReady() ? "READY" : "COOLDOWN", regen.Stacks());
 
 		pad->Show();

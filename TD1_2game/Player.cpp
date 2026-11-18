@@ -87,21 +87,21 @@ void Player::ClampX(float minX, float maxX)
 }
 
 
-Vector2 Player::GetCursorDirection(float kWorldOriginY) {
-	int moucePositionX{};
-	int moucePositionY{};
+Vector2 Player::GetCursorDirection(Vector2 Pos) {
+	int mousePositionX{};
+	int mousePositionY{};
 	Vector2 playerInversePos{};
-	Vector2 mouceDirection{};
-	Novice::GetMousePosition(&moucePositionX,&moucePositionY);//マウスのポジション取得
+	Vector2 mouseDirection{};
+	Novice::GetMousePosition(&mousePositionX,&mousePositionY);//マウスのポジション取得
 
-	playerInversePos = { pos_.x,pos_.y * -1 };
+	playerInversePos = { camera_->ScreenToWorld(Pos)};
 
-	mouceDirection.x = (static_cast<float>(moucePositionX) - playerInversePos.x) - size_.x * 0.5f;
-	mouceDirection.y = ((static_cast<float>(moucePositionY) - playerInversePos.y) * -1 + kWorldOriginY + size_.y * 0.5f);
+	mouseDirection.x = (static_cast<float>(mousePositionX) - playerInversePos.x) - size_.x * 0.5f;
+	mouseDirection.y = ((static_cast<float>(mousePositionY) - playerInversePos.y) * -1  + size_.y * 0.5f);
 
-	Novice::ScreenPrintf(200, 0, "mouceDirection.x:%.1f", mouceDirection.x);
-	Novice::ScreenPrintf(200, 20, "mouceDirection.y:%.1f", mouceDirection.y);
-	return mouceDirection;
+	Novice::ScreenPrintf(200, 0, "mouceDirection.x:%.1f", mouseDirection.x);
+	Novice::ScreenPrintf(200, 20, "mouceDirection.y:%.1f", mouseDirection.y);
+	return mouseDirection;
 }
 
 void Player::Show()
