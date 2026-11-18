@@ -44,6 +44,21 @@
     <ClCompile Include="Pad.cpp">
       <Filter>KamataEngine</Filter>
     </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>KamataEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="Matrix3x3.cpp">
+      <Filter>KamataEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="HealFlask.cpp">
+      <Filter>KamataEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="RegenEffect.cpp">
+      <Filter>KamataEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="HealDrop.cpp">
+      <Filter>KamataEngine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\KamataEngine\DirectXGame\audio\Audio.h">
@@ -138,5 +153,11 @@
     <ClInclude Include="Collision.h" />
     <ClInclude Include="Pad.h" />
     <ClInclude Include="Theta.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Matrix3x3.h" />
+    <ClInclude Include="World.h" />
+    <ClInclude Include="HealFlask.h" />
+    <ClInclude Include="RegenEffect.h" />
+    <ClInclude Include="HealDrop.h" />
   </ItemGroup>
 </Project>

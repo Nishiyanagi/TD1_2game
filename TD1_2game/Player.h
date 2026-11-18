@@ -13,11 +13,13 @@ public:
 	Player(Vector2 position, Vector2 speed, Vector2 range,float hp);
 	void Jump(const char* keys, const char* preKeys, Vector2& speed);
 	void Move(const char* keys, Vector2 speed, Pads* pad);
+	void ClampX(float minX, float maxX);
 	void Show();
 	bool Attack(Vector2 weaponPos, Vector2 weaponSize, float screenWidth, float screenHeight);
 	bool Defence();
 	void Damage(float amount);
 	bool WeaponHit();//自傷で吹っ飛ぶ時の、ヒット処理
+	void Heal(float amount);
 
 	Vector2 Pos();//場所確認
 	Vector2 Size();//大きさ確認
@@ -35,6 +37,7 @@ private:
 	Vector2 acceleration_{};
 
 	float hp_{};
+	float maxHp_{};   // 最大HP(回復の上限)
 
 	float attackTimer_{};
 
