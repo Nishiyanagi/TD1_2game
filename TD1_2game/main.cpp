@@ -25,6 +25,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	// ライブラリの初期化
 	Novice::Initialize(kWindowTitle, 1920, 1080);
+	float screenWidth = 1920;
+	float screenHeight = 1080;
 
 	Random::Init();
 
@@ -70,13 +72,20 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #pragma endregion
 
-		if (player->Attack())
+		if (player->Attack(weapon->Pos(), weapon->Size(), screenWidth, screenHeight))
 		{
-			weapon->Move(keys, weapon->Velocity(), pad);
+			player->attackTimer();
+			if (!player->isSingleAttack())
+			{
+				weapon->Move(keys, weapon->Velocity(), pad);
+			}
 		}
 		else
 		{
-			weapon->PosReset(player->Pos());
+			if (!player->isSingleAttack())
+			{
+				weapon->PosReset(player->Pos());
+			}
 
 			player->Jump(keys, preKeys, *player->Velocity());
 			if (!player->Defence()) {
@@ -84,16 +93,16 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 			}
 			pad->Input();
+		}
 
+		if (player->isSingleAttack())
+		{
+			weapon->SingleAttack(weapon->Velocity()/*, pad*/);
 		}
 
 		player->Defence();
 
-
-
-		player->attackTimer();
-
-		weapon->SetActive(player->Attack());
+		weapon->SetActive(player->Attack(weapon->Pos(), weapon->Size(), screenWidth, screenHeight) || player->isSingleAttack());
 
 		weapon->IsActive();
 
@@ -140,7 +149,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #pragma endregion
 
-		if (player->Attack()) {//攻撃時
+		if (player->Attack(weapon->Pos(), weapon->Size(), screenWidth, screenHeight)) {//攻撃時
 			Novice::DrawBox(static_cast<int>(player->Pos().x), static_cast<int>(player->Pos().y * -1 + kWorldOriginY), static_cast<int>(player->Size().x), static_cast<int>(player->Size().y), 0.0f, 0xD06060ff, kFillModeSolid);
 
 		}
@@ -162,7 +171,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #ifdef _DEBUG
 		Novice::ScreenPrintf(0, 0, "JumpCount:%.1f", player->JumpCount());
-		if (player->Attack()) {//攻撃時
+		if (player->Attack(weapon->Pos(), weapon->Size(), screenWidth, screenHeight)) {//攻撃時
 			Novice::ScreenPrintf(0, 20, "Acction:Attack");
 
 		}

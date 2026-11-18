@@ -43,11 +43,6 @@ void Player::Jump(const char* keys, const char* preKeys, Vector2& speed) {
 	}
 }
 void Player::Move(const char* keys, Vector2 speed, Pads* pad) {
-
-
-	
-
-
 	if (keys[DIK_D]) {
 		pos_.x += speed.x;
 		isRight_ = true;
@@ -76,7 +71,7 @@ bool Player::WeaponHit() {
 	return false;
 }
 
-bool Player::Attack() {
+bool Player::Attack(Vector2 weaponPos, Vector2 weaponSize, float screenWidth, float screenHeight) {
 	if (Novice::IsPressMouse(0) || Novice::IsPressButton(0, kPadButton15) || Novice::IsPressButton(0, kPadButton9)) {
 		if (attackTimer_ >= 300)
 		{
@@ -89,11 +84,19 @@ bool Player::Attack() {
 		}
 	}
 	else {
+		if (attackTimer_ >= 2 && attackTimer_ <= 6)
+		{
+			isSingleAttack_ = true;
+		}
+		if (weaponPos.x >= screenWidth + weaponSize.x || weaponPos.x <= -weaponSize.x ||
+			weaponPos.y >= screenHeight + weaponSize.y || weaponPos.y <= -weaponSize.y)
+		{
+			isSingleAttack_ = false;
+		}
 		attackTimer_ = 0;
 		return isAttack_ = false;
 	}
 }
-
 
 void Player::Damage(float amount)
 {
@@ -121,11 +124,15 @@ float  Player::HP() {//HP確認
 	return hp_;
 }
 
-float Player::attackTimer() {//攻撃タイマー確認
+float Player::attackTimer() {//攻撃タイマー増加
 	attackTimer_++;
 	return attackTimer_;
 }
 
 bool Player::isRight() {
 	return isRight_;
+}
+
+bool Player::isSingleAttack() {
+	return isSingleAttack_;
 }
