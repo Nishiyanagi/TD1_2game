@@ -98,7 +98,7 @@ bool Player::Attack() {
 		}
 	}
 	else {
-		if (attackTimer_ >= 2 && attackTimer_ <= 6)
+		if (attackTimer_ >= 2 && attackTimer_ <= 12)
 		{
 			isSingleAttack_ = true;
 		}
