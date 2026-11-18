@@ -352,7 +352,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #ifdef _DEBUG
 		Novice::ScreenPrintf(0, 0, "JumpCount:%.1f", player->JumpCount());
-		if (player->Attack(weapon->Pos(), weapon->Size(), screenWidth, screenHeight)) {//攻撃時
+		if (player->Attack(weapon->Pos(), weapon->Size(), kWindowWidth, kWindowHeight)) {//攻撃時
 			Novice::ScreenPrintf(0, 20, "Acction:Attack");
 
 		}
