@@ -163,6 +163,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				weapon->PosReset(player->Pos());
 			}
 
+			player->GetCursorDirection( kWorldOriginY);
 			player->Jump(keys, preKeys, *player->Velocity());
 			if (!player->Defence()) {
 				player->Move(keys, *player->Velocity(), pad);
