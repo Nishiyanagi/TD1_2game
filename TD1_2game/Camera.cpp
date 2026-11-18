@@ -20,9 +20,6 @@ void Camera::Update(const Vector2& targetPos)
 	pos_.x += (targetPos.x - pos_.x)* kFollow;
 
 	pos_.y += (targetPos.y - pos_.y) * kFollow;
-	
-	scrollPos_.x += (targetPos.x - pos_.x) * kFollow;
-	scrollPos_.y += (targetPos.y - pos_.y) * kFollow;
 
 	
 	ClampToWorld();
