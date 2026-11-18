@@ -125,7 +125,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #pragma endregion
 
-		if (player->Attack(weapon->Pos(), weapon->Size(), screenWidth, screenHeight))
+		if (player->Attack(weapon->Pos(), weapon->Size(), kWindowWidth, kWindowHeight))
 		{
 			player->attackTimer();
 			if (!player->isSingleAttack())
@@ -160,7 +160,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		player->attackTimer();
 
-		weapon->SetActive(player->Attack(weapon->Pos(), weapon->Size(), screenWidth, screenHeight) || player->isSingleAttack());
+		weapon->SetActive(player->Attack(weapon->Pos(), weapon->Size(), kWindowWidth, kWindowHeight) || player->isSingleAttack());
 
 		weapon->IsActive();
 
@@ -260,7 +260,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			}
 		}
 
-		if (player->Attack(weapon->Pos(), weapon->Size(), screenWidth, screenHeight)) {//攻撃時
+		if (player->Attack(weapon->Pos(), weapon->Size(), kWindowWidth, kWindowHeight)) {//攻撃時
 			DrawWorldBox(camera, player->Pos(), player->Size(), 0xD06060ff);
 		}
 		else if (player->Defence()) {//ガード時
@@ -280,7 +280,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #ifdef _DEBUG
 		Novice::ScreenPrintf(0, 0, "JumpCount:%.1f", player->JumpCount());
-		if (player->Attack(weapon->Pos(), weapon->Size(), screenWidth, screenHeight)) {//攻撃時
+		if (player->Attack(weapon->Pos(), weapon->Size(), kWindowWidth, kWindowHeight)) {//攻撃時
 			Novice::ScreenPrintf(0, 20, "Acction:Attack");
 
 		}
