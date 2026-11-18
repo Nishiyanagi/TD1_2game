@@ -59,9 +59,13 @@ void Weapon::Move(const char* keys, Vector2 velocity, Pads* pad)
 	velocity.x *= static_cast<float>(*pad->Lx()) / 32768;
 	velocity.y *= static_cast<float>(*pad->Ly()) / 32768;
 
-
 	pos_.x += velocity.x;
 	pos_.y -= velocity.y;
+}
+
+void Weapon::SingleAttack(Vector2 velocity/*, Pads* pad*/)
+{
+	pos_.y += velocity.y;
 }
 
 void Weapon::PosReset(const Vector2 pos)

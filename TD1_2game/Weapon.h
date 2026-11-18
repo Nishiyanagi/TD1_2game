@@ -9,11 +9,12 @@ public:
 
 	void SetActive(bool isActive);
 	void Move(const char* keys, const Vector2 velocity, Pads* pad);
+	void SingleAttack(const Vector2 velocity/*, Pads* pad*/);
 	void PosReset(const Vector2 pos);
 
 	Vector2 Pos();//場所確認
 	Vector2 Size();//大きさ確認
-	Vector2 Velocity();//速度確認
+	Vector2 Velocity();//速度確認	
 	bool IsActive();//アクティブ確認
 private:
 	Vector2 pos_{};

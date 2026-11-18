@@ -14,7 +14,7 @@ public:
 	void Jump(const char* keys, const char* preKeys, Vector2& speed);
 	void Move(const char* keys, Vector2 speed, Pads* pad);
 	void Show();
-	bool Attack();
+	bool Attack(Vector2 weaponPos, Vector2 weaponSize, float screenWidth, float screenHeight);
 	bool Defence();
 	void Damage(float amount);
 	bool WeaponHit();//自傷で吹っ飛ぶ時の、ヒット処理
@@ -26,6 +26,7 @@ public:
 	float attackTimer();//攻撃タイマー確認
 	float HP();//HP確認
 	bool isRight();//向き確認
+	bool isSingleAttack();//単発攻撃確認
 
 private:
 	Vector2 pos_{};
@@ -41,6 +42,7 @@ private:
 
 	bool isJump_ = false;
 	bool isAttack_ = false;
+	bool isSingleAttack_ = false;
 	bool isDefence_ = false;
 	bool isRight_ = false;//右向いてるかどうか　true:右向き false:左向き
 
