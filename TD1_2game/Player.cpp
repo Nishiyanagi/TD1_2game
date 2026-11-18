@@ -9,10 +9,10 @@ Player::Player(Vector2 position, Vector2 speed, Vector2 range, float hp)
 	velocity_{ speed },
 	size_{ range },
 	acceleration_{ 0.0f,0.5f },
-	hp_{ hp }
+	hp_{ hp },
+	maxHp_{ hp }
 {
 }
-//こんにちわ
  
 bool Player::Defence() {
 	if (Novice::IsPressMouse(1) || Novice::IsPressButton(0, kPadButton11) ) {
@@ -78,7 +78,14 @@ bool Player::WeaponHit() {
 	return false;
 }
 
-bool Player::Attack(Vector2 weaponPos, Vector2 weaponSize, float screenWidth, float screenHeight) {
+void Player::Heal(float amount)
+{
+	if (amount <= 0.0f || hp_ <= 0.0f) { return; }   // HP0(やられた後)は回復しない
+	hp_ += amount;
+	if (hp_ > maxHp_) { hp_ = maxHp_; }
+}
+
+bool Player::Attack() {
 	if (Novice::IsPressMouse(0) || Novice::IsPressButton(0, kPadButton15) || Novice::IsPressButton(0, kPadButton9)) {
 		if (attackTimer_ >= 300)
 		{

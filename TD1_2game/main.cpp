@@ -10,6 +10,11 @@
 #include "Cooldown.h"
 #include "Camera.h"   // 追加
 #include "World.h"    // 追加
+#include "HealFlask.h"    // 追加(回復)
+#include "HealDrop.h"     // 追加(回復)
+#include "RegenEffect.h"  // 追加(回復)
+#include <vector>        // 追加(回復)
+#include <algorithm>     // 追加(回復)
 #ifdef USE_IMGUI
 #include <imgui.h>
 #endif
@@ -66,6 +71,18 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	bool weaponHitDone = false;        // 今回の攻撃でもう当てたか(多段ヒット防止)
 	const int kWeaponDamage = 5;
 	const float kContactDamage = 2.0f;
+
+	// 回復(数値はここで調整)
+	const int kFlaskCooldown = 600;       // 常備の回復のクールタイム(フレーム。600 = 10秒)
+	const float kFlaskAmount = 20.0f;     // 常備の回復の回復量
+	const int kRegenFrames = 300;         // リジェネ1個分の持続時間(フレーム。300 = 5秒)
+	const int kRegenTickInterval = 60;    // 何フレームに一回回復するか(60 = 1秒に一回)
+	const float kRegenTickAmount = 2.0f;  // 一回の回復量(1個分の合計 = 回復する回数 × この値)
+	const int kDropChance = 20;           // 攻撃を当てたときにドロップする確率(%)
+
+	HealFlask flask(kFlaskCooldown, kFlaskAmount);
+	RegenEffect regen(kRegenFrames, kRegenTickInterval, kRegenTickAmount);
+	std::vector<HealDrop> drops;
 
 	float kWorldOriginY = 800.0f; // 従来の「ワールドのY=0が画面のどこか」(画面の見た目を変えないために使う)
 
@@ -167,11 +184,44 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			if (!weaponHitDone && IsHit(weaponRect, enemyRect)) {
 				enemy1->Damage(kWeaponDamage);
 				weaponHitDone = true;
+
+				// 一定確率でリジェネのアイテムが敵の位置に出る
+				if (Random::Chance(kDropChance)) {
+					drops.push_back(HealDrop(Vector2(
+						enemy1->Pos().x + enemy1->Size().x * 0.5f,
+						enemy1->Pos().y - enemy1->Size().y * 0.5f)));
+				}
 			}
 		}
 		else {
 			weaponHitDone = false;
 		}
+
+#pragma endregion
+
+#pragma region Heal
+
+		// 常備の回復: E キー or パッドの Y(押した瞬間)
+		flask.Update();
+		const bool healPressed = HealFlask::HealTrigger(keys, preKeys);
+		if (healPressed && flask.TryUse()) {
+			player->Heal(flask.Amount());
+		}
+
+		// リジェネ: 重ね掛けの数だけ、毎フレームの回復量が増える
+		player->Heal(regen.Update());
+
+		// ドロップ: 落下・消滅の管理と、プレイヤーが触れたらリジェネ開始
+		for (HealDrop& drop : drops) {
+			drop.Update();
+			if (drop.IsActive() && IsHit(playerRect, drop.GetRect())) {
+				regen.AddStack();
+				drop.Collect();   // その時点でアイテムは消える
+			}
+		}
+		drops.erase(
+			std::remove_if(drops.begin(), drops.end(), [](const HealDrop& drop) { return !drop.IsActive(); }),
+			drops.end());
 
 #pragma endregion
 
@@ -188,16 +238,27 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓描画処理ここから
 		///
 
+#ifdef _DEBUG
+
 		// 【仮】スクロールが分かりやすいよう、ステージに縦線を引く(不要になったら消してください)
 		for (float x = 0.0f; x <= kWorldWidth; x += 240.0f) {
-			DrawWorldLine(camera, Vector2(x, 1000.0f), Vector2(x, 0.0f), 0x404040ff);
+			DrawWorldLine(camera, Vector2(x, 800.0f), Vector2(x, 0.0f), 0x404040ff);
 		}
+
+#endif // DEBUG	
 
 #pragma region Enemy1
 
 		DrawWorldBox(camera, enemy1->Pos(), enemy1->Size(), 0x40C040ff);
 
 #pragma endregion
+
+		// 回復アイテム(ドロップ)
+		for (const HealDrop& drop : drops) {
+			if (drop.ShouldDraw()) {
+				DrawWorldBox(camera, drop.Pos(), drop.Size(), 0x60FF90ff);
+			}
+		}
 
 		if (player->Attack()) {//攻撃時
 			DrawWorldBox(camera, player->Pos(), player->Size(), 0xD06060ff);
@@ -237,6 +298,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		Novice::ScreenPrintf(200, 60, "PlayerSpeed:%.1f %.1f", player->Velocity()->x, player->Velocity()->y);
 		Novice::ScreenPrintf(0, 80, "EnemyHP:%.1f", enemy1->Hp());
 		Novice::ScreenPrintf(0, 120, "Camera:%.1f %.1f", camera.Pos().x, camera.Pos().y);
+		Novice::ScreenPrintf(0, 140, "Flask:%s  Regen:x%d", flask.IsReady() ? "READY" : "COOLDOWN", regen.Stacks());
 
 		pad->Show();
 		player->Show();

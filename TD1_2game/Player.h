@@ -19,6 +19,7 @@ public:
 	bool Defence();
 	void Damage(float amount);
 	bool WeaponHit();//自傷で吹っ飛ぶ時の、ヒット処理
+	void Heal(float amount);
 
 	Vector2 Pos();//場所確認
 	Vector2 Size();//大きさ確認
@@ -36,6 +37,7 @@ private:
 	Vector2 acceleration_{};
 
 	float hp_{};
+	float maxHp_{};   // 最大HP(回復の上限)
 
 	float attackTimer_{};
 
