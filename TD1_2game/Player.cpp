@@ -151,7 +151,6 @@ void Player::Damage(float amount)
 	if (hp_ < 0.0f) { hp_ = 0.0f; }
 }
 
-
 void Player::Damage(float amount)
 {
 	if (amount <= 0.0f) { return; }
