@@ -199,8 +199,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			}
 			else if (weaponHitDone) {
 
-				weapon->SetActive(false);
-				player->SetAttackTimer(300.0f);
 				player->SetSingleAttack(false);
 			}
 		}
