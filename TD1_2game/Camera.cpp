@@ -21,7 +21,6 @@ void Camera::Update(const Vector2& targetPos)
 
 	pos_.y += (targetPos.y - pos_.y) * kFollow;
 
-	
 	ClampToWorld();
 	UpdateMatrix();
 }
