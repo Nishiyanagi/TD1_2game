@@ -142,8 +142,6 @@ Vector2 Player::Size() {//大きさ確認
 	return size_;
 }
 
-Vector2 Player::Pos() {
-	return pos_;
 Vector2* Player::Velocity() {//速度確認
 	return &velocity_;
 }
