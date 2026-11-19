@@ -209,7 +209,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 						enemy1->Pos().y - enemy1->Size().y * 0.5f)));
 				}
 			}
-			else if (weaponHitDone) {
+			else if (weaponHitDone ) {
+					weaponHitTimer.Update();
+				if (weaponHitTimer.IsReady()) {
+					weaponHitDone = false;
+				}
 
 				player->SetSingleAttack(false);
 			}
