@@ -71,7 +71,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	Cooldown playerInvincible{ 60 };	// プレイヤーの被弾後の無敵時間(フレーム)
 	bool weaponHitDone = false;			// 今回の攻撃でもう当てたか(多段ヒット防止)
-	Cooldown weaponHitTimer{ 30 };		// 攻撃が連続で入るようにするための間隔のタイマ
+	Cooldown weaponHitTimer{ 12 };		// 攻撃が連続で入るようにするための間隔のタイマ
 	const int kWeaponDamage = 5;
 	const float kContactDamage = 2.0f;
 	float kWorldOriginY = 800.0f; // 従来の「ワールドのY=0が画面のどこか」(画面の見た目を変えないために使う)
