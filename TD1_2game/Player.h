@@ -18,12 +18,12 @@ public:
 	void Move(const char* keys, Vector2 speed, Pads* pad);
 	void ClampX(float minX, float maxX);
 	void Show();
-	bool Attack(Vector2 weaponPos, Vector2 weaponSize, float screenWidth, float screenHeight);
+	bool Attack(Vector2 weaponPos, Vector2& mouseDirection);
 	bool Defence();
 	void Damage(float amount);
 	float SetAttackTimer(float times);//攻撃タイマーを入力
 	bool SetSingleAttack(bool isSingleAttack);//攻撃タイマーを入力
-	Vector2 GetCursorDirection(Vector2 Pos);//プレイヤーの向いてる方向をマウスカーソルを追尾する関数
+	void GetCursorDirection(Vector2 Pos, Vector2& mouseDirection);//プレイヤーの向いてる方向をマウスカーソルを追尾する関数
 	bool WeaponHit();//自傷で吹っ飛ぶ時の、ヒット処理
 	void Heal(float amount);
 

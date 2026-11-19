@@ -70,24 +70,6 @@ void Player::ClampX(float minX, float maxX)
 
 }
 
-
-Vector2 Player::GetCursorDirection(Vector2 Pos) {
-	int mousePositionX{};
-	int mousePositionY{};
-	Vector2 playerInversePos{};
-	Vector2 mouseDirection{};
-	Novice::GetMousePosition(&mousePositionX,&mousePositionY);//マウスのポジション取得
-
-	playerInversePos = { camera_->ScreenToWorld(Pos)};
-
-	mouseDirection.x = (static_cast<float>(mousePositionX) - playerInversePos.x) - size_.x * 0.5f;
-	mouseDirection.y = ((static_cast<float>(mousePositionY) - playerInversePos.y) * -1  + size_.y * 0.5f);
-
-	Novice::ScreenPrintf(200, 0, "mouceDirection.x:%.1f", mouseDirection.x);
-	Novice::ScreenPrintf(200, 20, "mouceDirection.y:%.1f", mouseDirection.y);
-	return mouseDirection;
-}
-
 void Player::Show()
 {
 	Novice::ScreenPrintf(0, 40, "AttackTimer:%f", attackTimer_);
@@ -105,7 +87,21 @@ void Player::Heal(float amount)
 	if (hp_ > maxHp_) { hp_ = maxHp_; }
 }
 
-bool Player::Attack(Vector2 weaponPos, Vector2 weaponSize, float screenWidth, float screenHeight) {
+void Player::GetCursorDirection(Vector2 Pos, Vector2& mouseDirection) {
+	int mousePositionX{};
+	int mousePositionY{};
+	Vector2 playerInversePos{};
+	Novice::GetMousePosition(&mousePositionX, &mousePositionY);//マウスのポジション取得
+	playerInversePos = { camera_->ScreenToWorld(Pos) };
+
+	mouseDirection.x = (static_cast<float>(mousePositionX) - playerInversePos.x) - size_.x * 0.5f;
+	mouseDirection.y = ((static_cast<float>(mousePositionY) - playerInversePos.y) * -1 + size_.y * 0.5f);
+
+	Novice::ScreenPrintf(200, 0, "mouceDirection.x:%.1f", mouseDirection.x);
+	Novice::ScreenPrintf(200, 20, "mouceDirection.y:%.1f", mouseDirection.y);
+}
+
+bool Player::Attack(Vector2 weaponPos, Vector2& mouseDirection) {
 	if (Novice::IsPressMouse(0) || Novice::IsPressButton(0, kPadButton15) || Novice::IsPressButton(0, kPadButton9)) {
 		if (attackTimer_ >= 300)
 		{
@@ -120,13 +116,13 @@ bool Player::Attack(Vector2 weaponPos, Vector2 weaponSize, float screenWidth, fl
 	else {
 		if (attackTimer_ >= 2 && attackTimer_ <= 12)
 		{
+			GetCursorDirection(weaponPos, mouseDirection);
 			isSingleAttack_ = true;
 		}
-		if ((weaponPos.x >= screenWidth + weaponSize.x || weaponPos.x <= -weaponSize.x ||
-			weaponPos.y >= screenHeight + weaponSize.y || weaponPos.y <= -weaponSize.y) ) 
-		{
-			isSingleAttack_ = false;
-		}
+		//if () //武器が消える条件
+		//{
+		//	isSingleAttack_ = false;
+		//}
 		attackTimer_ = 0;
 		return isAttack_ = false;
 	}
