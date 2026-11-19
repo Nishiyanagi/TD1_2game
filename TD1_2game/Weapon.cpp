@@ -65,13 +65,12 @@ void Weapon::Move(const char* keys, Vector2 velocity, Pads* pad)
 
 void Weapon::SingleAttack(Vector2 velocity, Vector2 mouseCursor, Vector2 ScrollPos/*, Pads* pad*/)
 {
-	float angle = {};
+	float angle = {90.0f};
 	
-	if (angle == 0.0f) {
+	if (angle >= 90.0f) {
 angle = atan2f(mouseCursor.y , mouseCursor.x + ScrollPos.x);
 	
 	}
-	
 	
 	pos_.x += velocity.x * cosf(angle);
 	pos_.y += velocity.y * sinf(angle);
