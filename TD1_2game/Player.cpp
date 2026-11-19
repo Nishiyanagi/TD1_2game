@@ -173,7 +173,7 @@ Vector2 Player::Pos() {//場所確認
 Vector2 Player::Size() {//大きさ確認
 	return size_;
 }
-
+//ども
 Vector2* Player::Velocity() {//速度確認
 	return &velocity_;
 }
