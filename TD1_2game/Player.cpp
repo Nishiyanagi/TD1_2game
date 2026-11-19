@@ -86,24 +86,6 @@ void Player::ClampX(float minX, float maxX)
 
 }
 
-
-Vector2 Player::GetCursorDirection(Vector2 Pos) {
-	int mousePositionX{};
-	int mousePositionY{};
-	Vector2 playerInversePos{};
-	Vector2 mouseDirection{};
-	Novice::GetMousePosition(&mousePositionX,&mousePositionY);//マウスのポジション取得
-
-	playerInversePos = { camera_->ScreenToWorld(Pos)};
-
-	mouseDirection.x = (static_cast<float>(mousePositionX) - playerInversePos.x) - size_.x * 0.5f;
-	mouseDirection.y = ((static_cast<float>(mousePositionY) - playerInversePos.y) * -1  + size_.y * 0.5f);
-
-	Novice::ScreenPrintf(200, 0, "mouceDirection.x:%.1f", mouseDirection.x);
-	Novice::ScreenPrintf(200, 20, "mouceDirection.y:%.1f", mouseDirection.y);
-	return mouseDirection;
-}
-
 void Player::Show()
 {
 	Novice::ScreenPrintf(0, 40, "AttackTimer:%f", attackTimer_);
