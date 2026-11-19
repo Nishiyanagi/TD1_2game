@@ -69,8 +69,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	Weapon* weapon = new Weapon(Vector2(640.0f, 25.0f), Vector2(50.0f, 25.0f), Vector2(5.0f, 5.0f));
 
-	Cooldown playerInvincible{ 60 };   // プレイヤーの被弾後の無敵時間(フレーム)
-	bool weaponHitDone = false;        // 今回の攻撃でもう当てたか(多段ヒット防止)
+	Cooldown playerInvincible{ 60 };	// プレイヤーの被弾後の無敵時間(フレーム)
+	bool weaponHitDone = false;			// 今回の攻撃でもう当てたか(多段ヒット防止)
+	Cooldown weaponHitTimer{ 30 };		// 攻撃が連続で入るようにするための間隔のタイマ
 	const int kWeaponDamage = 5;
 	const float kContactDamage = 2.0f;
 	float kWorldOriginY = 800.0f; // 従来の「ワールドのY=0が画面のどこか」(画面の見た目を変えないために使う)
@@ -188,7 +189,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			const Rect weaponRect = MakeRect(weapon->Pos(), weapon->Size());
 			if (!weaponHitDone && IsHit(weaponRect, enemyRect)) {
 				enemy1->Damage(kWeaponDamage);
-				weaponHitDone = true;
+				weaponHitTimer.Start();
+				weaponHitDone = true;				
 
 				// 一定確率でリジェネのアイテムが敵の位置に出る
 				if (Random::Chance(kDropChance)) {
@@ -197,7 +199,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 						enemy1->Pos().y - enemy1->Size().y * 0.5f)));
 				}
 			}
-			else if (weaponHitDone) {
+			else if (weaponHitDone ) {
+					weaponHitTimer.Update();
+				if (weaponHitTimer.IsReady()) {
+					weaponHitDone = false;
+				}
 
 				player->SetSingleAttack(false);
 			}
