@@ -99,7 +99,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	RegenEffect regen(kRegenFrames, kRegenTickInterval, kRegenTickAmount);
 	std::vector<HealDrop> drops;
 
-
+	Vector2 mouseDirection = {};
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
 	char preKeys[256] = { 0 };
@@ -130,7 +130,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #pragma endregion
 
-		if (player->Attack(weapon->Pos(), weapon->Size(), kWindowWidth, kWindowHeight))
+		if (player->Attack(weapon->Pos(), mouseDirection))
 		{
 			player->attackTimer();
 			if (!player->isSingleAttack())
@@ -145,7 +145,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				weapon->PosReset(player->Pos());
 			}
 
-			player->GetCursorDirection(weapon->Pos());
 			player->Jump(keys, preKeys, *player->Velocity());
 			if (!player->Defence()) {
 				player->Move(keys, *player->Velocity(), pad);
@@ -156,7 +155,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		if (player->isSingleAttack())
 		{
-			weapon->SingleAttack(weapon->Velocity(), player->GetCursorDirection(weapon->Pos()), camera->ScrollPos()/*, pad*/);
+			weapon->SingleAttack(weapon->Velocity(), mouseDirection, camera->ScrollPos()/*, pad*/);
 		}
 
 		player->Defence();
@@ -166,7 +165,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		player->attackTimer();
 
-		weapon->SetActive(player->Attack(weapon->Pos(), weapon->Size(), kWindowWidth, kWindowHeight) || player->isSingleAttack());
+		weapon->SetActive(player->Attack(weapon->Pos(), mouseDirection) || player->isSingleAttack());
 
 		weapon->IsActive();
 
@@ -276,7 +275,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			}
 		}
 
-		if (player->Attack(weapon->Pos(), weapon->Size(), kWindowWidth, kWindowHeight)) {//攻撃時
+		if (player->Attack(weapon->Pos(), mouseDirection)) {//攻撃時
 			DrawWorldBox(*camera, player->Pos(), player->Size(), 0xD06060ff);
 		}
 		else if (player->Defence()) {//ガード時
@@ -296,7 +295,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #ifdef _DEBUG
 		Novice::ScreenPrintf(0, 0, "JumpCount:%.1f", player->JumpCount());
-		if (player->Attack(weapon->Pos(), weapon->Size(), kWindowWidth, kWindowHeight)) {//攻撃時
+		if (player->Attack(weapon->Pos(), mouseDirection)) {//攻撃時
 			Novice::ScreenPrintf(0, 20, "Acction:Attack");
 
 		}
