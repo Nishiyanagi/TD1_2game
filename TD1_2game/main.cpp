@@ -327,7 +327,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		Novice::ScreenPrintf(0, 80, "EnemyHP:%.1f", enemy1->Hp());
 		Novice::ScreenPrintf(0, 120, "Camera:%.1f %.1f", camera->Pos().x, camera->Pos().y);
 		Novice::ScreenPrintf(0, 140, "Flask:%s  Regen:x%d", flask.IsReady() ? "READY" : "COOLDOWN", regen.Stacks());
-		Novice::ScreenPrintf(0, 160, "Input:%s  (Kで切り替え)", InputDevice::UsePad() ? "PAD" : "KEYBOARD+MOUSE");
+		Novice::ScreenPrintf(0, 160, "Input:%s  (K to change)", InputDevice::UsePad() ? "PAD" : "KEYBOARD+MOUSE");
 
 		pad->Show();
 		player->Show();
