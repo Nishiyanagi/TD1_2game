@@ -66,22 +66,6 @@ void Player::Move(const char* keys, Vector2 speed, Pads* pad) {
 	if (keys[DIK_S]) {
 		//足場を降りる処理
 	}
-		//足場を降りる処理
-	}
-}
-
-void Player::ClampX(float minX, float maxX)
-{
-	if (pos_.x < minX) { pos_.x = minX; }
-	if (pos_.x + size_.x > maxX) { pos_.x = maxX - size_.x; }
-
-}
-
-void Player::ClampX(float minX, float maxX)
-{
-	if (pos_.x < minX) { pos_.x = minX; }
-	if (pos_.x + size_.x > maxX) { pos_.x = maxX - size_.x; }
-
 }
 
 void Player::ClampX(float minX, float maxX)
@@ -123,6 +107,43 @@ void Player::GetCursorDirection(Vector2 Pos, Vector2& mouseDirection) {
 		float y = static_cast<float>(ly) / -kStickMax;   // スティックは上が負なので、ワールド(Y上向き)に合わせて反転
 		const float length = sqrtf(x * x + y * y);
 
+	Novice::ScreenPrintf(200, 0, "mouceDirection.x:%.1f", mouseDirection.x);
+	Novice::ScreenPrintf(200, 20, "mouceDirection.y:%.1f", mouseDirection.y);
+}
+
+bool Player::Attack(Vector2 weaponPos, Vector2& mouseDirection) {
+	if (InputDevice::IsPressMouse(0) || InputDevice::IsPressButton(kPadButton15) || InputDevice::IsPressButton(kPadButton9)) {
+		if (attackTimer_ >= 300)
+		{
+			attackTimer_ = 0;
+			return isAttack_ = false, isSingleAttack_ = false;
+		}
+		else
+		{
+			return isAttack_ = true;
+		}
+	}
+	else {
+		if (attackTimer_ >= 2 && attackTimer_ <= 12)
+		{
+			GetCursorDirection(weaponPos, mouseDirection);
+			isSingleAttack_ = true;
+		}
+		//if () //武器が消える条件
+		//{
+		//	isSingleAttack_ = false;
+		//}
+		attackTimer_ = 0;
+		return isAttack_ = false;
+	}
+}
+
+void Player::Damage(float amount)
+{
+	if (amount <= 0.0f) { return; }
+	hp_ -= amount;
+	if (hp_ < 0.0f) { hp_ = 0.0f; }
+}
 		if (length < kDeadZone) {
 			x = isRight_ ? 1.0f : -1.0f;
 			y = 0.0f;
@@ -183,20 +204,6 @@ void Player::Damage(float amount)
 	if (hp_ < 0.0f) { hp_ = 0.0f; }
 }
 
-void Player::Damage(float amount)
-{
-	if (amount <= 0.0f) { return; }
-	hp_ -= amount;
-	if (hp_ < 0.0f) { hp_ = 0.0f; }
-}
-
-void Player::Damage(float amount)
-{
-	if (amount <= 0.0f) { return; }
-	hp_ -= amount;
-	if (hp_ < 0.0f) { hp_ = 0.0f; }
-}
-
 Vector2 Player::Pos() {//場所確認
 	return pos_;
 }
@@ -211,12 +218,6 @@ float  Player::JumpCount() {//ジャンプ回数確認
 	return jumpCount_;
 }
 float  Player::HP() {//HP確認
-	return hp_;
-}
-float  Player::JumpCounte() {//速度確認
-	return jumpCounte_;
-}
-float  Player::HP() {//速度確認
 	return hp_;
 }
 

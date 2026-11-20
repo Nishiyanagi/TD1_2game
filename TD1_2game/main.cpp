@@ -30,10 +30,6 @@ Pads* pad = new Pads;
 
 static int IsTriggerButton(int stickNo, PadButton button);
 
-Pads* pad = new Pads;
-
-static int IsTriggerButton(int stickNo, PadButton button);
-
 const char kWindowTitle[] = "LC1B_16_ニシヤナギ_リョウマ_タイトル";
 
 // ワールド座標の矩形(pos は左上・Y上向き)をカメラ越しに描画する
@@ -105,11 +101,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	std::vector<HealDrop> drops;
 
 	Vector2 mouseDirection = {};
-	Player* player = new Player(Vector2(640.0f, 50.0f), Vector2(5.0f, 5.0f), Vector2(50.0f, 50.0f), 100.0f);
-	Weapon* weapon = new Weapon(Vector2(640.0f, 50.0f), Vector2(50.0f, 25.0f));
-
-	float kWorldOriginY = 800.0f; // 従来の「ワールドのY=0が画面のどこか」(画面の見た目を変えないために使う)
-
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
 	char preKeys[256] = { 0 };
@@ -169,7 +160,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 			player->Jump(inputKeys, inputPreKeys, *player->Velocity());
 			if (!player->Defence()) {
-				player->Move(keys, *player->Velocity(), pad);
+				player->Move(inputKeys, *player->Velocity(), pad);
+
 			}
 			pad->Input();
 		}
@@ -193,8 +185,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		weapon->IsActive();
 
 
-		player->Attack();
-		player->Defence();
 #pragma region Collision
 
 		playerInvincible.Update();
@@ -225,14 +215,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			}
 			else if (weaponHitDone) {
 				weaponHitTimer.Update();
-				if (weaponHitTimer.IsReady()) {
-					weaponHitDone = false;
-				}
-
-				player->SetSingleAttack(false);
-			}
-			else if (weaponHitDone ) {
-					weaponHitTimer.Update();
 				if (weaponHitTimer.IsReady()) {
 					weaponHitDone = false;
 				}
@@ -306,8 +288,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			if (drop.ShouldDraw()) {
 				DrawWorldBox(*camera, drop.Pos(), drop.Size(), 0x60FF90ff);
 			}
-				DrawWorldBox(*camera, drop.Pos(), drop.Size(), 0x60FF90ff);
-			}
 		}
 
 		if (player->Attack(weapon->Pos(), mouseDirection)) {//攻撃時
@@ -337,44 +317,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		else if (player->Defence()) {//ガード時
 			Novice::ScreenPrintf(0, 20, "Acction:Defence");
 
-		}
-		else {//攻撃、ガード無し
-			Novice::ScreenPrintf(0, 20, "Acction:None");
-
-		}
-
-
-		Novice::ScreenPrintf(0, 60, "PlayerHP:%.1f", player->HP());
-		Novice::ScreenPrintf(200, 60, "PlayerSpeed:%.1f %.1f", player->Velocity()->x, player->Velocity()->y);
-		Novice::ScreenPrintf(0, 80, "EnemyHP:%.1f", enemy1->Hp());
-		Novice::ScreenPrintf(0, 120, "Camera:%.1f %.1f", camera->Pos().x, camera->Pos().y);
-		Novice::ScreenPrintf(0, 140, "Flask:%s  Regen:x%d", flask.IsReady() ? "READY" : "COOLDOWN", regen.Stacks());
-
-		pad->Show();
-		player->Show();
-
-#endif
-
-
-		}
-
-		// 武器の描画
-		if (weapon->IsActive()) {
-			DrawWorldBox(*camera, weapon->Pos(), weapon->Size(), BLACK);
-		}
-
-		// 地面
-		DrawWorldLine(*camera, line->StartPos(), line->EndPos(), 0xffffffff);
-
-#ifdef _DEBUG
-		Novice::ScreenPrintf(0, 0, "JumpCount:%.1f", player->JumpCount());
-		if (player->Attack(weapon->Pos(), weapon->Size(), kWindowWidth, kWindowHeight)) {//攻撃時
-			Novice::ScreenPrintf(0, 20, "Acction:Attack");
-
-		}
-		else if (player->Defence()) {//ガード時
-			Novice::ScreenPrintf(0, 20, "Acction:Defence");
-			
 		}
 		else {//攻撃、ガード無し
 			Novice::ScreenPrintf(0, 20, "Acction:None");

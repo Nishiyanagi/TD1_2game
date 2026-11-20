@@ -8,11 +8,6 @@ enum Actions {
 	ATTACK = 1,
 	DEFENCE = 2
 };
-enum Actions {
-	NONE = 0,
-	ATTACK = 1,
-	DEFENCE = 2
-};
 class Camera;
 
 class Player {
@@ -31,7 +26,6 @@ public:
 	void GetCursorDirection(Vector2 Pos, Vector2& mouseDirection);//プレイヤーの向いてる方向をマウスカーソルを追尾する関数
 	bool WeaponHit();//自傷で吹っ飛ぶ時の、ヒット処理
 	void Heal(float amount);
-
 
 	Vector2 Pos();//場所確認
 	Vector2 Size();//大きさ確認
