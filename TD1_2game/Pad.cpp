@@ -31,7 +31,7 @@ void Pads::Input() {
 
 	}*/
 
-
+	//マージした
 	if (Novice::IsPressButton(0, kPadButton8) || Novice::IsPressButton(0, kPadButton14)) {//L1かL2を押したら
 
 		n_++;
