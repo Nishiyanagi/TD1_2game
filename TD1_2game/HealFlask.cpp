@@ -1,5 +1,6 @@
 #include "HealFlask.h"
 #include <Novice.h>
+#include "InputDevice.h"
 
 HealFlask::HealFlask(int cooldownFrames, float healAmount)
 	: cooldown_{ cooldownFrames },
@@ -11,7 +12,7 @@ HealFlask::HealFlask(int cooldownFrames, float healAmount)
 bool HealFlask::HealTrigger(const char* keys, const char* preKeys)
 {
 	const bool keyboard = keys[DIK_E] && !preKeys[DIK_E];   // E を押した瞬間
-	const bool pad = Novice::IsTriggerButton(0, kPadButton13);   // パッドの Y を押した瞬間
+	const bool pad = InputDevice::IsTriggerButton(kPadButton13);   // パッドの Y を押した瞬間
 	return keyboard || pad;
 }
 

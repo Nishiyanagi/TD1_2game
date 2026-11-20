@@ -3,6 +3,8 @@
 #include "Vector2.h"
 #include "Camera.h"
 #include "Pad.h"
+#include "InputDevice.h"
+#include <math.h>
 #include <Novice.h>
 
 Player::Player(Vector2 position, Vector2 speed, Vector2 range, float hp, Camera* camera)
@@ -15,9 +17,9 @@ Player::Player(Vector2 position, Vector2 speed, Vector2 range, float hp, Camera*
 	camera_{ camera }
 {
 }
- 
+
 bool Player::Defence() {
-	if (Novice::IsPressMouse(1) || Novice::IsPressButton(0, kPadButton11) ) {
+	if (InputDevice::IsPressMouse(1) || InputDevice::IsPressButton(kPadButton11)) {
 		return isDefence_ = true;
 	}
 	else {
@@ -26,7 +28,7 @@ bool Player::Defence() {
 }
 void Player::Jump(const char* keys, const char* preKeys, Vector2& speed) {
 
-	if ((keys[DIK_SPACE] && !preKeys[DIK_SPACE] || Novice::IsTriggerButton(0, kPadButton10))&& !Player::Defence()) {
+	if ((keys[DIK_SPACE] && !preKeys[DIK_SPACE] || InputDevice::IsTriggerButton(kPadButton10)) && !Player::Defence()) {
 		isJump_ = true;
 		jumpCount_++;
 		speed.y = 10.0f * (1.0f - jumpCount_ / 15);
@@ -54,7 +56,7 @@ void Player::Move(const char* keys, Vector2 speed, Pads* pad) {
 		isRight_ = false;
 	}
 
-Novice::GetAnalogInputLeft(0, pad->Lx(), pad->Ly());//Lスティックが入力された時の値を返す関数
+	InputDevice::GetAnalogInputLeft(pad->Lx(), pad->Ly());//Lスティックが入力された時の値を返す関数
 	speed.x *= static_cast<float>(*pad->Lx()) / 32768;
 	pos_.x += speed.x;
 
@@ -104,6 +106,33 @@ void Player::Heal(float amount)
 }
 
 void Player::GetCursorDirection(Vector2 Pos, Vector2& mouseDirection) {
+	// パッド操作中はマウスを使わず、右スティックの向きで狙う(倒していなければ向いている方向)
+	if (InputDevice::UsePad()) {
+		constexpr float kStickMax = 32768.0f;
+		constexpr float kDeadZone = 0.3f;     // これより小さい入力は「倒していない」とみなす
+		constexpr float kAimLength = 300.0f;  // 方向ベクトルの長さ(マウス操作での、プレイヤーからカーソルまでの距離に相当)
+
+		int rx = 0;
+		int ry = 0;
+		InputDevice::GetAnalogInputRight(&rx, &ry);
+
+		float x = static_cast<float>(rx) / kStickMax;
+		float y = static_cast<float>(ry) / -kStickMax;   // スティックは上が負なので、ワールド(Y上向き)に合わせて反転
+		const float length = sqrtf(x * x + y * y);
+
+		if (length < kDeadZone) {
+			x = isRight_ ? 1.0f : -1.0f;
+			y = 0.0f;
+		}
+		else {
+			x /= length;
+			y /= length;
+		}
+
+		mouseDirection = { x * kAimLength, y * kAimLength };
+		return;
+	}
+
 	int mousePositionX{};
 	int mousePositionY{};
 	Vector2 playerInversePos{};
@@ -118,7 +147,7 @@ void Player::GetCursorDirection(Vector2 Pos, Vector2& mouseDirection) {
 }
 
 bool Player::Attack(Vector2 weaponPos, Vector2& mouseDirection) {
-	if (Novice::IsPressMouse(0) || Novice::IsPressButton(0, kPadButton15) || Novice::IsPressButton(0, kPadButton9)) {
+	if (InputDevice::IsPressMouse(0) || InputDevice::IsPressButton(kPadButton15) || InputDevice::IsPressButton(kPadButton9)) {
 		if (attackTimer_ >= 300)
 		{
 			attackTimer_ = 0;

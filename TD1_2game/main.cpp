@@ -15,6 +15,7 @@
 #include "RegenEffect.h"  // 追加(回復)
 #include <vector>        // 追加(回復)
 #include <algorithm>     // 追加(回復)
+#include "InputDevice.h"  // 追加(操作デバイスの切り替え)
 #ifdef USE_IMGUI
 #include <imgui.h>
 #endif
@@ -122,6 +123,18 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		memcpy(preKeys, keys, 256);
 		Novice::GetHitKeyStateAll(keys);
 
+		// 操作デバイスの切り替え(仮): K キー。K はどちらのデバイスの操作中でも効く
+		// タイトル/ポーズ画面ができたら、ここの代わりに InputDevice::SetUsePad(true / false) を呼ぶ
+		if (keys[DIK_K] && !preKeys[DIK_K]) {
+			InputDevice::Toggle();
+		}
+
+		// ゲーム操作用のキー入力。パッド操作中は全部 0 になる(ゲームの処理にはこちらを渡す)
+		char inputKeys[256];
+		char inputPreKeys[256];
+		InputDevice::FilterKeys(keys, inputKeys);
+		InputDevice::FilterKeys(preKeys, inputPreKeys);
+
 		///
 		/// ↓更新処理ここから
 		///
@@ -144,7 +157,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			player->attackTimer();
 			if (!player->isSingleAttack())
 			{
-				weapon->Move(keys, weapon->Velocity(), pad);
+				weapon->Move(inputKeys, weapon->Velocity(), pad);
 			}
 		}
 		else
@@ -154,7 +167,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				weapon->PosReset(player->Pos());
 			}
 
-			player->Jump(keys, preKeys, *player->Velocity());
+			player->Jump(inputKeys, inputPreKeys, *player->Velocity());
 			if (!player->Defence()) {
 				player->Move(keys, *player->Velocity(), pad);
 			}
@@ -199,7 +212,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			if (!weaponHitDone && IsHit(weaponRect, enemyRect)) {
 				enemy1->Damage(kWeaponDamage);
 				weaponHitTimer.Start();
-				weaponHitDone = true;				
+				weaponHitDone = true;
 
 				// 一定確率でリジェネのアイテムが敵の位置に出る
 				if (Random::Chance(kDropChance)) {
@@ -208,8 +221,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 						enemy1->Pos().y - enemy1->Size().y * 0.5f)));
 				}
 			}
-			else if (weaponHitDone ) {
-					weaponHitTimer.Update();
+			else if (weaponHitDone) {
+				weaponHitTimer.Update();
 				if (weaponHitTimer.IsReady()) {
 					weaponHitDone = false;
 				}
@@ -235,7 +248,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		// 常備の回復: E キー or パッドの Y(押した瞬間)
 		flask.Update();
-		const bool healPressed = HealFlask::HealTrigger(keys, preKeys);
+		const bool healPressed = HealFlask::HealTrigger(inputKeys, inputPreKeys);
 		if (healPressed && flask.TryUse()) {
 			player->Heal(flask.Amount());
 		}
@@ -363,7 +376,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		}
 		else {//攻撃、ガード無し
 			Novice::ScreenPrintf(0, 20, "Acction:None");
-			
+
 		}
 
 
@@ -372,6 +385,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		Novice::ScreenPrintf(0, 80, "EnemyHP:%.1f", enemy1->Hp());
 		Novice::ScreenPrintf(0, 120, "Camera:%.1f %.1f", camera->Pos().x, camera->Pos().y);
 		Novice::ScreenPrintf(0, 140, "Flask:%s  Regen:x%d", flask.IsReady() ? "READY" : "COOLDOWN", regen.Stacks());
+		Novice::ScreenPrintf(0, 160, "Input:%s  (Kで切り替え)", InputDevice::UsePad() ? "PAD" : "KEYBOARD+MOUSE");
 
 		pad->Show();
 		player->Show();

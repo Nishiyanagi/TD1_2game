@@ -177,6 +177,7 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
     <ClCompile Include="Cooldown.cpp" />
     <ClCompile Include="HealDrop.cpp" />
     <ClCompile Include="HealFlask.cpp" />
+    <ClCompile Include="InputDevice.cpp" />
     <ClCompile Include="Line.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="Enemy1.cpp" />
@@ -225,6 +226,7 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
     <ClInclude Include="Cooldown.h" />
     <ClInclude Include="HealDrop.h" />
     <ClInclude Include="HealFlask.h" />
+    <ClInclude Include="InputDevice.h" />
     <ClInclude Include="Line.h" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="Enemy1.h" />
