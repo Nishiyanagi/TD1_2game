@@ -107,43 +107,6 @@ void Player::GetCursorDirection(Vector2 Pos, Vector2& mouseDirection) {
 		float y = static_cast<float>(ly) / -kStickMax;   // スティックは上が負なので、ワールド(Y上向き)に合わせて反転
 		const float length = sqrtf(x * x + y * y);
 
-	Novice::ScreenPrintf(200, 0, "mouceDirection.x:%.1f", mouseDirection.x);
-	Novice::ScreenPrintf(200, 20, "mouceDirection.y:%.1f", mouseDirection.y);
-}
-
-bool Player::Attack(Vector2 weaponPos, Vector2& mouseDirection) {
-	if (InputDevice::IsPressMouse(0) || InputDevice::IsPressButton(kPadButton15) || InputDevice::IsPressButton(kPadButton9)) {
-		if (attackTimer_ >= 300)
-		{
-			attackTimer_ = 0;
-			return isAttack_ = false, isSingleAttack_ = false;
-		}
-		else
-		{
-			return isAttack_ = true;
-		}
-	}
-	else {
-		if (attackTimer_ >= 2 && attackTimer_ <= 12)
-		{
-			GetCursorDirection(weaponPos, mouseDirection);
-			isSingleAttack_ = true;
-		}
-		//if () //武器が消える条件
-		//{
-		//	isSingleAttack_ = false;
-		//}
-		attackTimer_ = 0;
-		return isAttack_ = false;
-	}
-}
-
-void Player::Damage(float amount)
-{
-	if (amount <= 0.0f) { return; }
-	hp_ -= amount;
-	if (hp_ < 0.0f) { hp_ = 0.0f; }
-}
 		if (length < kDeadZone) {
 			x = isRight_ ? 1.0f : -1.0f;
 			y = 0.0f;
