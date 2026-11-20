@@ -168,7 +168,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		if (player->isSingleAttack())
 		{
-			weapon->SingleAttack(weapon->Velocity(), mouseDirection, camera->ScrollPos()/*, pad*/);
+			// パッド操作中の mouseDirection は純粋な方向なので、マウス用のスクロール補正は入れない
+			const Vector2 scrollForAim = InputDevice::UsePad() ? Vector2{ 0.0f, 0.0f } : camera->ScrollPos();
+			weapon->SingleAttack(weapon->Velocity(), mouseDirection, scrollForAim/*, pad*/);
 		}
 
 		player->Defence();
