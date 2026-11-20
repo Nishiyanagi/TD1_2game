@@ -57,6 +57,9 @@ void Player::Move(const char* keys, Vector2 speed, Pads* pad) {
 	}
 
 	InputDevice::GetAnalogInputLeft(pad->Lx(), pad->Ly());//Lスティックが入力された時の値を返す関数
+	// パッド操作中も、スティックを倒した向きに合わせて向き(isRight_)を更新する
+	if (*pad->Lx() > 8000) { isRight_ = true; }
+	else if (*pad->Lx() < -8000) { isRight_ = false; }
 	speed.x *= static_cast<float>(*pad->Lx()) / 32768;
 	pos_.x += speed.x;
 
@@ -106,18 +109,18 @@ void Player::Heal(float amount)
 }
 
 void Player::GetCursorDirection(Vector2 Pos, Vector2& mouseDirection) {
-	// パッド操作中はマウスを使わず、右スティックの向きで狙う(倒していなければ向いている方向)
+	// パッド操作中はマウスを使わず、左スティックの向きで狙う(倒していなければ向いている方向)
 	if (InputDevice::UsePad()) {
 		constexpr float kStickMax = 32768.0f;
 		constexpr float kDeadZone = 0.3f;     // これより小さい入力は「倒していない」とみなす
 		constexpr float kAimLength = 300.0f;  // 方向ベクトルの長さ(マウス操作での、プレイヤーからカーソルまでの距離に相当)
 
-		int rx = 0;
-		int ry = 0;
-		InputDevice::GetAnalogInputRight(&rx, &ry);
+		int lx = 0;
+		int ly = 0;
+		InputDevice::GetAnalogInputLeft(&lx, &ly);
 
-		float x = static_cast<float>(rx) / kStickMax;
-		float y = static_cast<float>(ry) / -kStickMax;   // スティックは上が負なので、ワールド(Y上向き)に合わせて反転
+		float x = static_cast<float>(lx) / kStickMax;
+		float y = static_cast<float>(ly) / -kStickMax;   // スティックは上が負なので、ワールド(Y上向き)に合わせて反転
 		const float length = sqrtf(x * x + y * y);
 
 		if (length < kDeadZone) {
