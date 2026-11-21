@@ -4,6 +4,8 @@
 #include "Camera.h"
 #include "Pad.h"
 #include "InputDevice.h"
+#include "Weapon.h"
+#include "World.h"
 #include <math.h>
 #include <Novice.h>
 
@@ -14,7 +16,8 @@ Player::Player(Vector2 position, Vector2 speed, Vector2 range, float hp, Camera*
 	acceleration_{ 0.0f,0.5f },
 	hp_{ hp },
 	maxHp_{ hp },
-	camera_{ camera }
+	camera_{ camera },
+	attackTimer_{ 0.0f }
 {
 }
 
@@ -34,16 +37,14 @@ void Player::Jump(const char* keys, const char* preKeys, Vector2& speed) {
 		speed.y = 10.0f * (1.0f - jumpCount_ / 15);
 	}
 	if (isJump_) {
-
-		if ((pos_.y < line->StartPos().y + size_.y || pos_.y < line->EndPos().y + size_.y)) {
+		pos_.y += speed.y;
+		speed.y -= acceleration_.y;
+		if ((pos_.y <= line->StartPos().y + size_.y || pos_.y <= line->EndPos().y + size_.y)) {
 			pos_.y = line->StartPos().y + size_.y;
 			speed.y = 0;
 			jumpCount_ = 0;
 		}
-		else {
-			pos_.y += speed.y;
-			speed.y -= acceleration_.y;
-		}
+
 	}
 }
 void Player::Move(const char* keys, Vector2 speed, Pads* pad) {
@@ -93,15 +94,19 @@ void Player::Heal(float amount)
 }
 
 void Player::GetCursorDirection(Vector2 Pos, Vector2& mouseDirection) {
-	// パッド操作中はマウスを使わず、左スティックの向きで狙う(倒していなければ向いている方向)
-	if (InputDevice::UsePad()) {
-		constexpr float kStickMax = 32768.0f;
-		constexpr float kDeadZone = 0.3f;     // これより小さい入力は「倒していない」とみなす
-		constexpr float kAimLength = 300.0f;  // 方向ベクトルの長さ(マウス操作での、プレイヤーからカーソルまでの距離に相当)
 
-		int lx = 0;
-		int ly = 0;
+	int lx = 0;
+	int ly = 0;
+	constexpr float kStickMax = 32768.0f;
+	constexpr float kDeadZone = 0.3f;     // これより小さい入力は「倒していない」とみなす
+	constexpr float kAimLength = 300.0f; // 方向ベクトルの長さ(マウス操作での、プレイヤーからカーソルまでの距離に相当)
+
+
+	// パッド操作中はマウスを使わず、右スティックの向きで狙う(倒していなければ向いている方向)
+	if (InputDevice::UsePad() /*&&(Novice::IsTriggerButton(0, kPadButton9) || Novice::IsTriggerButton(0, kPadButton15))*/) {
+
 		InputDevice::GetAnalogInputLeft(&lx, &ly);
+
 
 		float x = static_cast<float>(lx) / kStickMax;
 		float y = static_cast<float>(ly) / -kStickMax;   // スティックは上が負なので、ワールド(Y上向き)に合わせて反転
@@ -117,6 +122,10 @@ void Player::GetCursorDirection(Vector2 Pos, Vector2& mouseDirection) {
 		}
 
 		mouseDirection = { x * kAimLength, y * kAimLength };
+
+		Novice::ScreenPrintf(200, 0, "mouseDirection.x:%.1f", mouseDirection.x);
+		Novice::ScreenPrintf(200, 20, "mouseDirection.y:%.1f", mouseDirection.y);
+
 		return;
 	}
 
@@ -124,20 +133,29 @@ void Player::GetCursorDirection(Vector2 Pos, Vector2& mouseDirection) {
 	int mousePositionY{};
 	Vector2 playerInversePos{};
 	Novice::GetMousePosition(&mousePositionX, &mousePositionY);//マウスのポジション取得
+
+
 	playerInversePos = { camera_->ScreenToWorld(Pos) };
 
 	mouseDirection.x = (static_cast<float>(mousePositionX) - playerInversePos.x) - size_.x * 0.5f;
 	mouseDirection.y = ((static_cast<float>(mousePositionY) - playerInversePos.y) * -1 + size_.y * 0.5f);
 
-	Novice::ScreenPrintf(200, 0, "mouceDirection.x:%.1f", mouseDirection.x);
-	Novice::ScreenPrintf(200, 20, "mouceDirection.y:%.1f", mouseDirection.y);
+
+	Novice::ScreenPrintf(200, 0, "mouseDirection.x:%.1f", mouseDirection.x);
+	Novice::ScreenPrintf(200, 20, "mouseDirection.y:%.1f", mouseDirection.y);
+
+
+
+
+
+
 }
 
-bool Player::Attack(Vector2 weaponPos, Vector2& mouseDirection) {
+bool Player::Attack(Weapon* weapon, Vector2& mouseDirection) {
 	if (InputDevice::IsPressMouse(0) || InputDevice::IsPressButton(kPadButton15) || InputDevice::IsPressButton(kPadButton9)) {
 		if (attackTimer_ >= 300)
 		{
-			attackTimer_ = 0;
+			/*attackTimer_ = 0;*/
 			return isAttack_ = false, isSingleAttack_ = false;
 		}
 		else
@@ -148,10 +166,10 @@ bool Player::Attack(Vector2 weaponPos, Vector2& mouseDirection) {
 	else {
 		if (attackTimer_ >= 2 && attackTimer_ <= 12)
 		{
-			GetCursorDirection(weaponPos, mouseDirection);
+			GetCursorDirection(weapon->Pos(), mouseDirection);
 			isSingleAttack_ = true;
 		}
-		//if () //武器が消える条件
+		//if (weapon.Pos().x > kWorldWidth || weapon.Pos().x < 0) //武器が消える条件
 		//{
 		//	isSingleAttack_ = false;
 		//}
@@ -173,7 +191,7 @@ Vector2 Player::Pos() {//場所確認
 Vector2 Player::Size() {//大きさ確認
 	return size_;
 }
-
+//ども
 Vector2* Player::Velocity() {//速度確認
 	return &velocity_;
 }
