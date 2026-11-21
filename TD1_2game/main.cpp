@@ -75,8 +75,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Cooldown weaponHitTimer{ 30 };		// 攻撃が連続で入るようにするための間隔のタイマ
 	bool weaponAwayFromPlayer = false;	// 長押しの武器が一度プレイヤーから離れたか(自分に当たる判定の条件)
 	bool launchHitDone = false;			// 今回の吹っ飛びでもう敵に当てたか
-	const float kLaunchDamage = 5.0f;	// 吹っ飛びで敵に当てたときのダメージ
-	const int kWeaponDamage = 1;
+	// 攻撃力(ここで個別に調整)
+	const float kShortPressDamage = 1.0f;	// 短押し(飛ばす攻撃)
+	const float kLongPressDamage = 1.0f;	// 長押し(動かせる攻撃。時間切れで戻っている最中も含む)
+	const float kLaunchDamage = 5.0f;		// 吹っ飛び(自分に当てて飛んだ体当たり)
 	const float kContactDamage = 2.0f;
 	float kWorldOriginY = 800.0f; // 従来の「ワールドのY=0が画面のどこか」(画面の見た目を変えないために使う)
 
@@ -258,9 +260,15 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		if (weapon->IsActive()) {
 			const Rect weaponRect = MakeRect(weapon->Pos(), weapon->Size());
 			if (!weaponHitDone && IsHit(weaponRect, enemyRect)) {
-				enemy1->Damage(kWeaponDamage);
+				// 飛ばす攻撃(短押し)かどうかで、攻撃力を切り替える
+				enemy1->Damage(player->isSingleAttack() ? kShortPressDamage : kLongPressDamage);
 				weaponHitTimer.Start();
 				weaponHitDone = true;
+
+				// 飛ばす攻撃(短押し)が当たったら、それ以上飛ばずにプレイヤーへ戻り始める
+				if (player->isSingleAttack()) {
+					weapon->StartReturn();
+				}
 
 				// 一定確率でリジェネのアイテムが敵の位置に出る
 				if (Random::Chance(kDropChance)) {
