@@ -72,12 +72,15 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	Cooldown playerInvincible{ 60 };	// プレイヤーの被弾後の無敵時間(フレーム)
 	bool weaponHitDone = false;			// 今回の攻撃でもう当てたか(多段ヒット防止)
-	Cooldown weaponHitTimer{ 12 };		// 攻撃が連続で入るようにするための間隔のタイマ
-	const int kWeaponDamage = 5;
+	Cooldown weaponHitTimer{ 30 };		// 攻撃が連続で入るようにするための間隔のタイマ
+	bool weaponAwayFromPlayer = false;	// 長押しの武器が一度プレイヤーから離れたか(自分に当たる判定の条件)
+	bool launchHitDone = false;			// 今回の吹っ飛びでもう敵に当てたか
+	const float kLaunchDamage = 5.0f;	// 吹っ飛びで敵に当てたときのダメージ
+	const int kWeaponDamage = 1;
 	const float kContactDamage = 2.0f;
 	float kWorldOriginY = 800.0f; // 従来の「ワールドのY=0が画面のどこか」(画面の見た目を変えないために使う)
 
-	bool isPadAttackTrigger = false; //パッドで攻撃したか
+	//bool isPadAttackTrigger = false; パッドで攻撃したか
 	// カメラ: 今までと同じ見た目(Y=0が画面の800px)になるよう、カメラ中心のYを決める
 	const float kCameraY = kWorldOriginY - kWindowHeight * 0.5f;
 
@@ -144,42 +147,63 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #pragma endregion
 
-		if (player->Attack(weapon, mouseDirection))
+		// 攻撃ボタンの状態は、1フレームに1回ここで受け取る
+		const bool isAttacking = player->Attack(weapon, mouseDirection);
+
+		// 長押しの時間が来たら、武器をプレイヤーへ戻し始める
+		if (player->ConsumeHoldTimeUp())
 		{
-			player->attackTimer();
-			if (!player->isSingleAttack())
+			weapon->StartReturn();
+		}
+
+		if (isAttacking)
+		{
+			player->attackTimer();   // 攻撃ボタンを押している間だけ、1フレームに1回数える
+			if (!player->isSingleAttack() && !weapon->IsReturning())
 			{
 				weapon->Move(inputKeys, weapon->Velocity(), pad);
 			}
 		}
 		else
 		{
-			if (!player->isSingleAttack())
+			if (!player->isSingleAttack() && !weapon->IsReturning())
 			{
 				weapon->PosReset(player->Pos());
 			}
 
-			player->Jump(inputKeys, inputPreKeys, *player->Velocity());
-			if (!player->Defence()) {
-				player->Move(inputKeys, *player->Velocity(), pad);
-
+			if (!player->IsLaunched()) {
+				player->Jump(inputKeys, inputPreKeys, *player->Velocity());
+				if (!player->Defence()) {
+					player->Move(inputKeys, *player->Velocity(), pad);
+				}
 			}
 			pad->Input();
 		}
 
 		if (player->isSingleAttack())
 		{
-			weapon->SingleAttack(weapon->Velocity(), mouseDirection, camera->ScrollPos(), isPadAttackTrigger/*,player->isRight(), pad*/);
+			// パッド操作中の mouseDirection は純粋な方向なので、マウス用のスクロール補正は入れない
+			const Vector2 scrollForAim = InputDevice::UsePad() ? Vector2{ 0.0f, 0.0f } : camera->ScrollPos();
+			// 一定距離まで飛んだらプレイヤーの位置へ戻ってくる。戻りきったら true が返るので、単発攻撃を終わらせる
+			if (weapon->SingleAttack(mouseDirection, scrollForAim, player->Pos())) {
+				player->SetSingleAttack(false);
+			}
+		}
+		else if (weapon->IsReturning())
+		{
+			// 長押しの時間が来て戻っている最中。プレイヤーの位置まで戻りきると止まる
+			weapon->UpdateReturn(player->Pos());
 		}
 
 		player->Defence();
 
+		// 吹っ飛び中の移動(慣性+少しだけ操作できる)
+		player->UpdateLaunch(inputKeys, pad);
+
 		// 追加: プレイヤーがステージの外に出ないようにする(Player に ClampX を追加する必要あり)
 		player->ClampX(0.0f, kWorldWidth);
 
-		player->attackTimer();
-
-		weapon->SetActive(player->Attack(weapon, mouseDirection) || player->isSingleAttack());
+		weapon->SetActive(isAttacking || player->isSingleAttack() || weapon->IsReturning());
 
 		weapon->IsActive();
 
@@ -191,8 +215,42 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		const Rect playerRect = MakeRect(player->Pos(), player->Size());
 		const Rect enemyRect = enemy1->GetRect();
 
-		// 敵 → プレイヤー(接触ダメージ。敵の状態にかかわらず、重なっていれば入る)
-		if (playerInvincible.IsReady() && IsHit(playerRect, enemyRect)) {
+		// 武器 → 自分(長押しで動かせる武器を曲げて自分にぶつける)
+		const bool canSelfHit = isAttacking && !player->isSingleAttack()
+			&& !weapon->IsReturning() && !player->IsLaunched();
+		if (canSelfHit) {
+			const Rect weaponRect = MakeRect(weapon->Pos(), weapon->Size());
+			if (!IsHit(weaponRect, playerRect)) {
+				weaponAwayFromPlayer = true;          // 一度離れた
+			}
+			else if (weaponAwayFromPlayer) {
+				// 武器の中心 → プレイヤーの中心 の向き = 当たった側と逆
+				const Vector2 weaponCenter{
+					weapon->Pos().x + weapon->Size().x * 0.5f,
+					weapon->Pos().y - weapon->Size().y * 0.5f };
+				const Vector2 playerCenterNow{
+					player->Pos().x + player->Size().x * 0.5f,
+					player->Pos().y - player->Size().y * 0.5f };
+				player->StartLaunch(Vector2(
+					playerCenterNow.x - weaponCenter.x,
+					playerCenterNow.y - weaponCenter.y));
+				weapon->PosReset(player->Pos());      // 武器はプレイヤーに吸収
+				weaponAwayFromPlayer = false;
+				launchHitDone = false;
+			}
+		}
+		else {
+			weaponAwayFromPlayer = false;
+		}
+
+		// 吹っ飛び中のプレイヤー → 敵(1回の吹っ飛びにつき1ヒット)
+		if (player->IsLaunched() && !launchHitDone && IsHit(playerRect, enemyRect)) {
+			enemy1->Damage(kLaunchDamage);
+			launchHitDone = true;
+		}
+
+		// 敵 → プレイヤー(接触ダメージ。吹っ飛び中は受けない)
+		if (!player->IsLaunched() && playerInvincible.IsReady() && IsHit(playerRect, enemyRect)) {
 			player->Damage(kContactDamage);
 			playerInvincible.Start();
 		}
@@ -217,8 +275,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				if (weaponHitTimer.IsReady()) {
 					weaponHitDone = false;
 				}
-
-				player->SetSingleAttack(false);
 			}
 		}
 		else {
@@ -289,7 +345,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			}
 		}
 
-		if (player->Attack(weapon, mouseDirection)) {//攻撃時
+		if (player->IsLaunched()) {//吹っ飛び中
+			DrawWorldBox(*camera, player->Pos(), player->Size(), 0xFFD040ff);
+		}
+		else if (player->Attack(weapon, mouseDirection)) {//攻撃時
 			DrawWorldBox(*camera, player->Pos(), player->Size(), 0xD06060ff);
 		}
 		else if (player->Defence()) {//ガード時
@@ -328,7 +387,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		Novice::ScreenPrintf(0, 80, "EnemyHP:%.1f", enemy1->Hp());
 		Novice::ScreenPrintf(0, 120, "Camera:%.1f %.1f", camera->Pos().x, camera->Pos().y);
 		Novice::ScreenPrintf(0, 140, "Flask:%s  Regen:x%d", flask.IsReady() ? "READY" : "COOLDOWN", regen.Stacks());
-		Novice::ScreenPrintf(0, 160, "Input:%s  (Kで切り替え)", InputDevice::UsePad() ? "PAD" : "KEYBOARD+MOUSE");
+		Novice::ScreenPrintf(0, 160, "Input:%s  (K to change)", InputDevice::UsePad() ? "PAD" : "KEYBOARD+MOUSE");
+		Novice::ScreenPrintf(0, 180, "Weapon:%s", weapon->IsReturning() ? "RETURNING" : "-");
 
 		pad->Show();
 		player->Show();
