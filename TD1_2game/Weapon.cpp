@@ -73,8 +73,8 @@ void Weapon::SingleAttack(Vector2 velocity, Vector2 mouseCursor, Vector2 ScrollP
 
 	if (isTrigger) {
 
-		pos_.x += velocity.x ;
-		pos_.y += velocity.y;
+		pos_.x += velocity.x * 2 ;
+		pos_.y += velocity.y * 2;
 	}
 	else {
 
@@ -83,8 +83,8 @@ void Weapon::SingleAttack(Vector2 velocity, Vector2 mouseCursor, Vector2 ScrollP
 
 		}
 
-		pos_.x += velocity.x * cosf(angle);
-		pos_.y += velocity.y * sinf(angle);
+		pos_.x += velocity.x * 2 * cosf(angle);
+		pos_.y += velocity.y * 2 * sinf(angle);
 
 	}
 
