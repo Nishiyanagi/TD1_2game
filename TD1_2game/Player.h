@@ -1,6 +1,7 @@
 #pragma once
 #include "Vector2.h"
 #include "Camera.h"
+#include "Weapon.h"
 #include "Pad.h"
 
 enum Actions {
@@ -18,7 +19,7 @@ public:
 	void Move(const char* keys, Vector2 speed, Pads* pad);
 	void ClampX(float minX, float maxX);
 	void Show();
-	bool Attack(Vector2 weaponPos, Vector2& mouseDirection);
+	bool Attack(Weapon* weapon, Vector2& mouseDirection);
 	bool Defence();
 	void Damage(float amount);
 	float SetAttackTimer(float times);//攻撃タイマーを入力
@@ -47,7 +48,7 @@ private:
 	float hp_{};
 	float maxHp_{};   // 最大HP(回復の上限)
 
-	float attackTimer_{};
+	float attackTimer_;
 
 	float jumpCount_{};
 
