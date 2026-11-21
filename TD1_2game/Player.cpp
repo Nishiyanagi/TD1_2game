@@ -134,30 +134,35 @@ void Player::GetCursorDirection(Vector2 Pos, Vector2& mouseDirection) {
 }
 
 bool Player::Attack(Vector2 weaponPos, Vector2& mouseDirection) {
-	if (InputDevice::IsPressMouse(0) || InputDevice::IsPressButton(kPadButton15) || InputDevice::IsPressButton(kPadButton9)) {
-		if (attackTimer_ >= 300)
-		{
+	const bool isPressed = InputDevice::IsPressMouse(0) || InputDevice::IsPressButton(kPadButton15) || InputDevice::IsPressButton(kPadButton9);
+
+	if (isPressed) {
+		// 長押しの時間切れのあとは、いったんボタンを離すまで攻撃しない
+		if (isHoldExpired_) {
+			return isAttack_ = false;
+		}
+
+		// 長押しの時間が来た(1回だけ)。武器を戻し始める合図を出す
+		if (attackTimer_ >= kHoldMaxFrames) {
+			isHoldExpired_ = true;
+			isHoldTimeUp_ = true;
 			attackTimer_ = 0;
-			return isAttack_ = false, isSingleAttack_ = false;
+			return isAttack_ = false;
 		}
-		else
-		{
-			return isAttack_ = true;
-		}
+
+		return isAttack_ = true;
 	}
-	else {
-		if (attackTimer_ >= 2 && attackTimer_ <= 12)
-		{
-			GetCursorDirection(weaponPos, mouseDirection);
-			isSingleAttack_ = true;
-		}
-		//if () //武器が消える条件
-		//{
-		//	isSingleAttack_ = false;
-		//}
-		attackTimer_ = 0;
-		return isAttack_ = false;
+
+	// ボタンを離している
+	isHoldExpired_ = false;
+
+	// 短押しで離した → 飛ばす攻撃
+	if (attackTimer_ >= kSingleAttackMinFrames && attackTimer_ <= kSingleAttackMaxFrames) {
+		GetCursorDirection(weaponPos, mouseDirection);
+		isSingleAttack_ = true;
 	}
+	attackTimer_ = 0;
+	return isAttack_ = false;
 }
 
 void Player::Damage(float amount)
@@ -204,4 +209,10 @@ bool Player::isSingleAttack() {
 bool Player::SetSingleAttack(bool isSingleAttack) {
 
 	return isSingleAttack_ = isSingleAttack;
+}
+
+bool Player::ConsumeHoldTimeUp() {
+	const bool result = isHoldTimeUp_;
+	isHoldTimeUp_ = false;
+	return result;
 }

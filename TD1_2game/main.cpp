@@ -72,8 +72,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	Cooldown playerInvincible{ 60 };	// プレイヤーの被弾後の無敵時間(フレーム)
 	bool weaponHitDone = false;			// 今回の攻撃でもう当てたか(多段ヒット防止)
-	Cooldown weaponHitTimer{ 12 };		// 攻撃が連続で入るようにするための間隔のタイマ
-	const int kWeaponDamage = 5;
+	Cooldown weaponHitTimer{ 30 };		// 攻撃が連続で入るようにするための間隔のタイマ
+	const int kWeaponDamage = 1;
 	const float kContactDamage = 2.0f;
 	float kWorldOriginY = 800.0f; // 従来の「ワールドのY=0が画面のどこか」(画面の見た目を変えないために使う)
 
@@ -143,17 +143,26 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #pragma endregion
 
-		if (player->Attack(weapon->Pos(), mouseDirection))
+		// 攻撃ボタンの状態は、1フレームに1回ここで受け取る
+		const bool isAttacking = player->Attack(weapon->Pos(), mouseDirection);
+
+		// 長押しの時間が来たら、武器をプレイヤーへ戻し始める
+		if (player->ConsumeHoldTimeUp())
 		{
-			player->attackTimer();
-			if (!player->isSingleAttack())
+			weapon->StartReturn();
+		}
+
+		if (isAttacking)
+		{
+			player->attackTimer();   // 攻撃ボタンを押している間だけ、1フレームに1回数える
+			if (!player->isSingleAttack() && !weapon->IsReturning())
 			{
 				weapon->Move(inputKeys, weapon->Velocity(), pad);
 			}
 		}
 		else
 		{
-			if (!player->isSingleAttack())
+			if (!player->isSingleAttack() && !weapon->IsReturning())
 			{
 				weapon->PosReset(player->Pos());
 			}
@@ -170,7 +179,15 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		{
 			// パッド操作中の mouseDirection は純粋な方向なので、マウス用のスクロール補正は入れない
 			const Vector2 scrollForAim = InputDevice::UsePad() ? Vector2{ 0.0f, 0.0f } : camera->ScrollPos();
-			weapon->SingleAttack(weapon->Velocity(), mouseDirection, scrollForAim/*, pad*/);
+			// 一定距離まで飛んだらプレイヤーの位置へ戻ってくる。戻りきったら true が返るので、単発攻撃を終わらせる
+			if (weapon->SingleAttack(mouseDirection, scrollForAim, player->Pos())) {
+				player->SetSingleAttack(false);
+			}
+		}
+		else if (weapon->IsReturning())
+		{
+			// 長押しの時間が来て戻っている最中。プレイヤーの位置まで戻りきると止まる
+			weapon->UpdateReturn(player->Pos());
 		}
 
 		player->Defence();
@@ -178,9 +195,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		// 追加: プレイヤーがステージの外に出ないようにする(Player に ClampX を追加する必要あり)
 		player->ClampX(0.0f, kWorldWidth);
 
-		player->attackTimer();
-
-		weapon->SetActive(player->Attack(weapon->Pos(), mouseDirection) || player->isSingleAttack());
+		weapon->SetActive(isAttacking || player->isSingleAttack() || weapon->IsReturning());
 
 		weapon->IsActive();
 
@@ -218,8 +233,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				if (weaponHitTimer.IsReady()) {
 					weaponHitDone = false;
 				}
-
-				player->SetSingleAttack(false);
 			}
 		}
 		else {
@@ -330,6 +343,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		Novice::ScreenPrintf(0, 120, "Camera:%.1f %.1f", camera->Pos().x, camera->Pos().y);
 		Novice::ScreenPrintf(0, 140, "Flask:%s  Regen:x%d", flask.IsReady() ? "READY" : "COOLDOWN", regen.Stacks());
 		Novice::ScreenPrintf(0, 160, "Input:%s  (K to change)", InputDevice::UsePad() ? "PAD" : "KEYBOARD+MOUSE");
+		Novice::ScreenPrintf(0, 180, "Weapon:%s", weapon->IsReturning() ? "RETURNING" : "-");
 
 		pad->Show();
 		player->Show();
