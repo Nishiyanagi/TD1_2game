@@ -155,7 +155,7 @@ bool Player::Attack(Weapon* weapon, Vector2& mouseDirection) {
 	if (InputDevice::IsPressMouse(0) || InputDevice::IsPressButton(kPadButton15) || InputDevice::IsPressButton(kPadButton9)) {
 		if (attackTimer_ >= 300)
 		{
-			attackTimer_ = 0;
+			/*attackTimer_ = 0;*/
 			return isAttack_ = false, isSingleAttack_ = false;
 		}
 		else
