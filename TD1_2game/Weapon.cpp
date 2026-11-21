@@ -1,4 +1,5 @@
 #include "Weapon.h"
+#include "InputDevice.h"
 #include "Pad.h"
 #include "Player.h"
 #include "Theta.h"
@@ -22,9 +23,9 @@ void Weapon::Move(const char* keys, Vector2 velocity, Pads* pad)
 	if (n <= 1) {
 		if (keys[DIK_D] || keys[DIK_A]) {
 			n++;
-			
+
 			if (keys[DIK_D]) {
-				
+
 				pos_.x += velocity.x;
 			}
 			if (keys[DIK_A]) {
@@ -63,19 +64,31 @@ void Weapon::Move(const char* keys, Vector2 velocity, Pads* pad)
 	pos_.y -= velocity.y;
 }
 
-void Weapon::SingleAttack(Vector2 velocity, Vector2 mouseCursor, Vector2 ScrollPos/*, Pads* pad*/)
+void Weapon::SingleAttack(Vector2 velocity, Vector2 mouseCursor, Vector2 ScrollPos, bool isTrigger/*,bool isRight, Pads* pad*/)
 {
-	float angle = {90.0f};
+	float angle = { 90.0f };
 	
-	if (angle >= 90.0f) {
-angle = atan2f(mouseCursor.y , mouseCursor.x + ScrollPos.x);
-	
-	}
-	
-	pos_.x += velocity.x * cosf(angle);
-	pos_.y += velocity.y * sinf(angle);
 
-	
+
+	if (isTrigger) {
+
+		pos_.x += velocity.x ;
+		pos_.y += velocity.y;
+	}
+	else {
+
+		if (angle >= 90.0f) {
+			angle = atan2f(mouseCursor.y, mouseCursor.x + ScrollPos.x);
+
+		}
+
+		pos_.x += velocity.x * cosf(angle);
+		pos_.y += velocity.y * sinf(angle);
+
+	}
+
+
+
 	Novice::ScreenPrintf(500, 40, "weaponPos:%.1f", pos_.x);
 	Novice::ScreenPrintf(500, 60, "weaponPos:%.1f", pos_.y);
 	Novice::ScreenPrintf(500, 90, "cosAngle:%.1f", cosf(angle));

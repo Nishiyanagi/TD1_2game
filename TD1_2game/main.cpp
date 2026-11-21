@@ -77,6 +77,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	const float kContactDamage = 2.0f;
 	float kWorldOriginY = 800.0f; // 従来の「ワールドのY=0が画面のどこか」(画面の見た目を変えないために使う)
 
+	bool isPadAttackTrigger = false; //パッドで攻撃したか
 	// カメラ: 今までと同じ見た目(Y=0が画面の800px)になるよう、カメラ中心のYを決める
 	const float kCameraY = kWorldOriginY - kWindowHeight * 0.5f;
 
@@ -143,7 +144,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #pragma endregion
 
-		if (player->Attack(weapon->Pos(), mouseDirection))
+		if (player->Attack(weapon, mouseDirection))
 		{
 			player->attackTimer();
 			if (!player->isSingleAttack())
@@ -168,7 +169,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		if (player->isSingleAttack())
 		{
-			weapon->SingleAttack(weapon->Velocity(), mouseDirection, camera->ScrollPos()/*, pad*/);
+			weapon->SingleAttack(weapon->Velocity(), mouseDirection, camera->ScrollPos(), isPadAttackTrigger/*,player->isRight(), pad*/);
 		}
 
 		player->Defence();
@@ -178,7 +179,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		player->attackTimer();
 
-		weapon->SetActive(player->Attack(weapon->Pos(), mouseDirection) || player->isSingleAttack());
+		weapon->SetActive(player->Attack(weapon, mouseDirection) || player->isSingleAttack());
 
 		weapon->IsActive();
 
@@ -288,7 +289,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			}
 		}
 
-		if (player->Attack(weapon->Pos(), mouseDirection)) {//攻撃時
+		if (player->Attack(weapon, mouseDirection)) {//攻撃時
 			DrawWorldBox(*camera, player->Pos(), player->Size(), 0xD06060ff);
 		}
 		else if (player->Defence()) {//ガード時
@@ -308,7 +309,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #ifdef _DEBUG
 		Novice::ScreenPrintf(0, 0, "JumpCount:%.1f", player->JumpCount());
-		if (player->Attack(weapon->Pos(), mouseDirection)) {//攻撃時
+		if (player->Attack(weapon, mouseDirection)) {//攻撃時
 			Novice::ScreenPrintf(0, 20, "Acction:Attack");
 
 		}
