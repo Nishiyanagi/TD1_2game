@@ -73,6 +73,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Cooldown playerInvincible{ 60 };	// プレイヤーの被弾後の無敵時間(フレーム)
 	bool weaponHitDone = false;			// 今回の攻撃でもう当てたか(多段ヒット防止)
 	Cooldown weaponHitTimer{ 30 };		// 攻撃が連続で入るようにするための間隔のタイマ
+	bool weaponAwayFromPlayer = false;	// 長押しの武器が一度プレイヤーから離れたか(自分に当たる判定の条件)
+	bool launchHitDone = false;			// 今回の吹っ飛びでもう敵に当てたか
+	const float kLaunchDamage = 5.0f;	// 吹っ飛びで敵に当てたときのダメージ
 	const int kWeaponDamage = 1;
 	const float kContactDamage = 2.0f;
 	float kWorldOriginY = 800.0f; // 従来の「ワールドのY=0が画面のどこか」(画面の見た目を変えないために使う)
@@ -167,10 +170,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				weapon->PosReset(player->Pos());
 			}
 
-			player->Jump(inputKeys, inputPreKeys, *player->Velocity());
-			if (!player->Defence()) {
-				player->Move(inputKeys, *player->Velocity(), pad);
-
+			if (!player->IsLaunched()) {
+				player->Jump(inputKeys, inputPreKeys, *player->Velocity());
+				if (!player->Defence()) {
+					player->Move(inputKeys, *player->Velocity(), pad);
+				}
 			}
 			pad->Input();
 		}
@@ -192,6 +196,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		player->Defence();
 
+		// 吹っ飛び中の移動(慣性+少しだけ操作できる)
+		player->UpdateLaunch(inputKeys, pad);
+
 		// 追加: プレイヤーがステージの外に出ないようにする(Player に ClampX を追加する必要あり)
 		player->ClampX(0.0f, kWorldWidth);
 
@@ -207,8 +214,42 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		const Rect playerRect = MakeRect(player->Pos(), player->Size());
 		const Rect enemyRect = enemy1->GetRect();
 
-		// 敵 → プレイヤー(接触ダメージ。敵の状態にかかわらず、重なっていれば入る)
-		if (playerInvincible.IsReady() && IsHit(playerRect, enemyRect)) {
+		// 武器 → 自分(長押しで動かせる武器を曲げて自分にぶつける)
+		const bool canSelfHit = isAttacking && !player->isSingleAttack()
+			&& !weapon->IsReturning() && !player->IsLaunched();
+		if (canSelfHit) {
+			const Rect weaponRect = MakeRect(weapon->Pos(), weapon->Size());
+			if (!IsHit(weaponRect, playerRect)) {
+				weaponAwayFromPlayer = true;          // 一度離れた
+			}
+			else if (weaponAwayFromPlayer) {
+				// 武器の中心 → プレイヤーの中心 の向き = 当たった側と逆
+				const Vector2 weaponCenter{
+					weapon->Pos().x + weapon->Size().x * 0.5f,
+					weapon->Pos().y - weapon->Size().y * 0.5f };
+				const Vector2 playerCenterNow{
+					player->Pos().x + player->Size().x * 0.5f,
+					player->Pos().y - player->Size().y * 0.5f };
+				player->StartLaunch(Vector2(
+					playerCenterNow.x - weaponCenter.x,
+					playerCenterNow.y - weaponCenter.y));
+				weapon->PosReset(player->Pos());      // 武器はプレイヤーに吸収
+				weaponAwayFromPlayer = false;
+				launchHitDone = false;
+			}
+		}
+		else {
+			weaponAwayFromPlayer = false;
+		}
+
+		// 吹っ飛び中のプレイヤー → 敵(1回の吹っ飛びにつき1ヒット)
+		if (player->IsLaunched() && !launchHitDone && IsHit(playerRect, enemyRect)) {
+			enemy1->Damage(kLaunchDamage);
+			launchHitDone = true;
+		}
+
+		// 敵 → プレイヤー(接触ダメージ。吹っ飛び中は受けない)
+		if (!player->IsLaunched() && playerInvincible.IsReady() && IsHit(playerRect, enemyRect)) {
 			player->Damage(kContactDamage);
 			playerInvincible.Start();
 		}
@@ -303,7 +344,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			}
 		}
 
-		if (player->Attack(weapon->Pos(), mouseDirection)) {//攻撃時
+		if (player->IsLaunched()) {//吹っ飛び中
+			DrawWorldBox(*camera, player->Pos(), player->Size(), 0xFFD040ff);
+		}
+		else if (player->Attack(weapon->Pos(), mouseDirection)) {//攻撃時
 			DrawWorldBox(*camera, player->Pos(), player->Size(), 0xD06060ff);
 		}
 		else if (player->Defence()) {//ガード時
