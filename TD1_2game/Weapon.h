@@ -15,7 +15,7 @@ public:
 	// 戻る動き(飛ばす攻撃の戻りと、長押しの時間切れで共通)
 	void StartReturn();                        // 今いる位置から、プレイヤーへ戻り始める
 	bool IsReturning() const;                  // 戻っている最中か
-	bool UpdateReturn(Vector2 returnTarget);   // 戻る動きを1フレーム進める。戻りきったフレームに true
+	bool UpdateReturn(Vector2 returnTarget/*, Vector2 ScrollPos*/);   // 戻る動きを1フレーム進める。戻りきったフレームに true
 	void PosReset(const Vector2 pos);
 
 	Vector2 Pos();//場所確認
@@ -26,6 +26,8 @@ private:
 	Vector2 pos_{};
 	Vector2 size_{};
 	Vector2 velocity_{};
+	Vector2 returnSpeed_ = { 15.0f,15.0f };    // 戻ってくる速さ
+	float targetPosTime_{};//対象の座標に向くタイミング
 	bool isActive_ = false;
 
 	// 飛ばす攻撃(行って戻ってくる)
@@ -39,7 +41,8 @@ private:
 	float traveled_ = 0.0f;     // 飛んだ距離
 
 	// 調整用(1フレームあたりの移動量は px)
-	static constexpr float kThrowSpeed = 15.0f;     // 飛んでいく速さ
-	static constexpr float kThrowDistance = 400.0f; // ここまで飛んだら戻り始める
-	static constexpr float kReturnSpeed = 15.0f;    // 戻ってくる速さ
+	static constexpr float kThrowSpeed_ = 15.0f;     // 飛んでいく速さ
+	static constexpr float kThrowDistance_ = 400.0f; // ここまで飛んだら戻り始める
+	static constexpr float kReturnSpeed_ = { 15.0f };    // 戻ってくる速さ
+	
 };

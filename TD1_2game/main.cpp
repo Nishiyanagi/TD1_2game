@@ -58,6 +58,7 @@ static void DrawWorldLine(const Camera& camera, const Vector2& start, const Vect
 Camera* camera;
 Player* player;
 
+
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
@@ -75,6 +76,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Cooldown weaponHitTimer{ 30 };		// 攻撃が連続で入るようにするための間隔のタイマ
 	bool weaponAwayFromPlayer = false;	// 長押しの武器が一度プレイヤーから離れたか(自分に当たる判定の条件)
 	bool launchHitDone = false;			// 今回の吹っ飛びでもう敵に当てたか
+	
+	bool singleAttack = false;			// 短押しかどうか 
+
 	const float kLaunchDamage = 5.0f;	// 吹っ飛びで敵に当てたときのダメージ
 	const int kWeaponDamage = 1;
 	const float kContactDamage = 2.0f;
@@ -184,16 +188,28 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		{
 			// パッド操作中の mouseDirection は純粋な方向なので、マウス用のスクロール補正は入れない
 			const Vector2 scrollForAim = InputDevice::UsePad() ? Vector2{ 0.0f, 0.0f } : camera->ScrollPos();
+			singleAttack = true;
 			// 一定距離まで飛んだらプレイヤーの位置へ戻ってくる。戻りきったら true が返るので、単発攻撃を終わらせる
 			if (weapon->SingleAttack(mouseDirection, scrollForAim, player->Pos())) {
 				player->SetSingleAttack(false);
+
 			}
 		}
 		else if (weapon->IsReturning())
 		{
+			/*const Vector2 scrollForAim = InputDevice::UsePad() ? Vector2{ 0.0f, 0.0f } : camera->ScrollPos();*/
+
 			// 長押しの時間が来て戻っている最中。プレイヤーの位置まで戻りきると止まる
-			weapon->UpdateReturn(player->Pos());
+			weapon->UpdateReturn(player->Pos()/*, scrollForAim*/);
+		
 		}
+		else {
+	singleAttack = false;
+		}
+		
+				
+			
+	
 
 		player->Defence();
 
@@ -215,16 +231,27 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		const Rect playerRect = MakeRect(player->Pos(), player->Size());
 		const Rect enemyRect = enemy1->GetRect();
 
+		Rect weaponRect{};
+
+		
+		
 		// 武器 → 自分(長押しで動かせる武器を曲げて自分にぶつける)
-		const bool canSelfHit = isAttacking && !player->isSingleAttack()
-			&& !weapon->IsReturning() && !player->IsLaunched();
-		if (canSelfHit) {
-			const Rect weaponRect = MakeRect(weapon->Pos(), weapon->Size());
+		const bool canSelfHit = isAttacking	&&						 /*player->isSingleAttack()*/
+								!weapon->IsReturning() && 
+								!player->IsLaunched();
+	
+		/*const bool singleHit = isAttacking && player->isSingleAttack()
+			&& !weapon->IsReturning() && !player->IsLaunched();*/
+
+		if (canSelfHit || singleAttack) {
+			weaponRect = MakeRect(weapon->Pos(), weapon->Size());
 			if (!IsHit(weaponRect, playerRect)) {
 				weaponAwayFromPlayer = true;          // 一度離れた
+
 			}
 			else if (weaponAwayFromPlayer) {
 				// 武器の中心 → プレイヤーの中心 の向き = 当たった側と逆
+			
 				const Vector2 weaponCenter{
 					weapon->Pos().x + weapon->Size().x * 0.5f,
 					weapon->Pos().y - weapon->Size().y * 0.5f };
@@ -238,6 +265,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				weaponAwayFromPlayer = false;
 				launchHitDone = false;
 			}
+
 		}
 		else {
 			weaponAwayFromPlayer = false;
@@ -257,7 +285,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		// 武器 → 敵(1回の攻撃につき1ヒット)
 		if (weapon->IsActive()) {
-			const Rect weaponRect = MakeRect(weapon->Pos(), weapon->Size());
+			weaponRect = MakeRect(weapon->Pos(), weapon->Size());
 			if (!weaponHitDone && IsHit(weaponRect, enemyRect)) {
 				enemy1->Damage(kWeaponDamage);
 				weaponHitTimer.Start();
@@ -385,6 +413,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		Novice::ScreenPrintf(0, 60, "PlayerHP:%.1f", player->HP());
 		Novice::ScreenPrintf(200, 60, "PlayerSpeed:%.1f %.1f", player->Velocity()->x, player->Velocity()->y);
 		Novice::ScreenPrintf(0, 80, "EnemyHP:%.1f", enemy1->Hp());
+		Novice::ScreenPrintf(0, 240, "singleAttack:%d", singleAttack);
+		Novice::ScreenPrintf(0, 260, "isAttacking:%d", isAttacking);
 		Novice::ScreenPrintf(0, 120, "Camera:%.1f %.1f", camera->Pos().x, camera->Pos().y);
 		Novice::ScreenPrintf(0, 140, "Flask:%s  Regen:x%d", flask.IsReady() ? "READY" : "COOLDOWN", regen.Stacks());
 		Novice::ScreenPrintf(0, 160, "Input:%s  (K to change)", InputDevice::UsePad() ? "PAD" : "KEYBOARD+MOUSE");
