@@ -14,8 +14,9 @@ class Camera;
 class Player {
 public:
 
-	Player(Vector2 position, Vector2 speed, Vector2 range,float hp,Camera* camera);
-	void Jump(const char* keys, const char* preKeys, Vector2& speed);
+	Player(Vector2 position, Vector2 speed, Vector2 range, float hp, Camera* camera);
+	void Jump(const char* keys, const char* preKeys, Vector2& speed);//ジャンプの入力(縦の初速を与えるだけ)
+	void UpdateGravity();//重力と縦の移動(常にかかる。攻撃中も含めて、毎フレーム呼ぶ)
 	void Move(const char* keys, Vector2 speed, Pads* pad);
 	void ClampX(float minX, float maxX);
 	void Show();
@@ -52,7 +53,6 @@ private:
 
 	float jumpCount_{};
 
-	bool isJump_ = false;
 	bool isAttack_ = false;
 	bool isSingleAttack_ = false;
 	bool isDefence_ = false;
@@ -60,4 +60,7 @@ private:
 
 	bool isAwayAttackWeapon_ = false;//プレイヤー自身の攻撃がプレイヤーから離れたら検知する
 	bool isHitAttackWeapon_ = false;//プレイヤー自身の攻撃がプレイヤーに接触したら検知する
+
+	// 重力は acceleration_.y(一定)
+	static constexpr float kMaxFallSpeed = 25.0f;      // 落ちる速さの上限(これ以上は速くならない)
 };

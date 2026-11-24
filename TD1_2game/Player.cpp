@@ -19,6 +19,7 @@ Player::Player(Vector2 position, Vector2 speed, Vector2 range, float hp, Camera*
 	camera_{ camera },
 	attackTimer_{ 0.0f }
 {
+	velocity_.y = 0.0f;   // 縦の速さは0から(velocity_ は歩く速さ(x)と共用)
 }
 
 bool Player::Defence() {
@@ -31,22 +32,34 @@ bool Player::Defence() {
 }
 void Player::Jump(const char* keys, const char* preKeys, Vector2& speed) {
 
+	// ジャンプの入力: 上向きの初速を与えるだけ。動かすのは UpdateGravity
 	if ((keys[DIK_SPACE] && !preKeys[DIK_SPACE] || InputDevice::IsTriggerButton(kPadButton10)) && !Player::Defence()) {
-		isJump_ = true;
 		jumpCount_++;
 		speed.y = 10.0f * (1.0f - jumpCount_ / 15);
 	}
-	if (isJump_) {
-		pos_.y += speed.y;
-		speed.y -= acceleration_.y;
-		if ((pos_.y <= line->StartPos().y + size_.y || pos_.y <= line->EndPos().y + size_.y)) {
-			pos_.y = line->StartPos().y + size_.y;
-			speed.y = 0;
-			jumpCount_ = 0;
-		}
+}
 
+void Player::UpdateGravity() {
+	// 縦の移動(ジャンプの初速も、落下も、ここで動かす)
+	pos_.y += velocity_.y;
+
+	// 重力は常に一定でかかる
+	velocity_.y -= acceleration_.y;
+
+	// 落ちる速さの上限
+	if (velocity_.y < -kMaxFallSpeed) {
+		velocity_.y = -kMaxFallSpeed;
+	}
+
+	// 地面に着いた(足元は pos_.y - size_.y)
+	const float groundY = fmaxf(line->StartPos().y, line->EndPos().y) + size_.y;
+	if (pos_.y <= groundY) {
+		pos_.y = groundY;
+		velocity_.y = 0.0f;
+		jumpCount_ = 0;
 	}
 }
+
 void Player::Move(const char* keys, Vector2 speed, Pads* pad) {
 	if (keys[DIK_D]) {
 		pos_.x += speed.x;
