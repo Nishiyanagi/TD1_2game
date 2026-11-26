@@ -7,7 +7,7 @@ class HealDrop
 {
 public:
 	// centerPos: 出現する位置(中心)
-	explicit HealDrop(Vector2 centerPos);
+	explicit HealDrop(Vector2 centerPos, int graphHandle);
 
 	void Update();            // 毎フレーム呼ぶ(落下・消滅の管理)
 	void Collect();           // 拾われた(消える)
@@ -17,6 +17,7 @@ public:
 
 	const Vector2& Pos() const { return pos_; }
 	const Vector2& Size() const { return size_; }
+	const int& GraphHandle() const { return graphHandle_; }
 	Rect GetRect() const { return MakeRect(pos_, size_); }
 
 private:
@@ -26,6 +27,8 @@ private:
 	bool isActive_ = true;
 	bool isOnGround_ = false;
 	int life_;             // 消えるまでの残りフレーム
+
+	int graphHandle_{};
 
 	static constexpr float kGravity = 0.8f;
 	static constexpr float kGroundY = 0.0f;

@@ -10,14 +10,16 @@ namespace {
 	}
 }
 
-Enemy1::Enemy1(Vector2 position, Vector2 size, Vector2 velocity, float hp)
-	: Enemy{ position, size, velocity, hp }
+Enemy1::Enemy1(Vector2 position, Vector2 size, Vector2 velocity, float hp, int graphHandle)
+	: Enemy{ position, size, velocity, hp, graphHandle }
 {
 	idleCooldown_.Start();
 }
 
 void Enemy1::Move(const Vector2& targetPos)
 {
+	ApplyKnockback();   // 攻撃を受けた反動の移動(行動の状態にかかわらず入る)
+
 	const float centerX = pos_.x + size_.x * 0.5f;
 
 	switch (state_) {

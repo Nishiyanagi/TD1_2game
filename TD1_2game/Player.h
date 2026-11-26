@@ -14,18 +14,17 @@ class Camera;
 class Player {
 public:
 
-	Player(Vector2 position, Vector2 speed, Vector2 range, float hp, Camera* camera);
-	void Jump(const char* keys, const char* preKeys, Vector2& speed);//ジャンプの入力(縦の初速を与えるだけ)
-	void UpdateGravity();//重力と縦の移動(常にかかる。攻撃中も含めて、毎フレーム呼ぶ)
+	Player(Vector2 position, Vector2 speed, Vector2 range, float hp, Camera* camera, int graphHandle);
+	void Jump(const char* keys, const char* preKeys, Vector2& speed);
+	void UpdateGravity();
 	void Move(const char* keys, Vector2 speed, Pads* pad);
-	void ClampX(float minX, float maxX);
+	void ClampX(float minX, float maxX); // プレイヤーの行動範囲のX座標
 	void Show();
-	bool Attack(Weapon* weapon, Vector2& mouseDirection);
+	void UpdateAttack(Vector2& mouseDirection);//毎フレーム1回呼ぶ。攻撃ボタンを押した瞬間にブーメランを投げる状態にする
 	bool Defence();
 	void Damage(float amount);
-	float SetAttackTimer(float times);//攻撃タイマーを入力
-	bool SetSingleAttack(bool isSingleAttack);//攻撃タイマーを入力
-	void GetCursorDirection(Vector2 Pos, Vector2& mouseDirection);//プレイヤーの向いてる方向をマウスカーソルを追尾する関数
+	bool SetSingleAttack(bool isSingleAttack);//単発攻撃の状態を設定(キャッチされたら false に戻す)
+	void GetCursorDirection(Vector2& mouseDirection);//プレイヤーの向いてる方向をマウスカーソルを追尾する関数
 	bool WeaponHit();//自傷で吹っ飛ぶ時の、ヒット処理
 	void Heal(float amount);
 
@@ -33,10 +32,11 @@ public:
 	Vector2 Size();//大きさ確認
 	Vector2* Velocity();//速度確認
 	float JumpCount();//ジャンプ回数確認
-	float attackTimer();//攻撃タイマー確認
 	float HP();//HP確認
 	bool isRight();//向き確認
 	bool isSingleAttack();//単発攻撃確認
+
+	const int& GraphHandle() const { return graphHandle_; }
 
 private:
 	Vector2 pos_{};
@@ -44,16 +44,17 @@ private:
 	Vector2 velocity_{};
 	Vector2 acceleration_{};
 
+	int graphHandle_{};
+
 	Camera* camera_{};
 
 	float hp_{};
 	float maxHp_{};   // 最大HP(回復の上限)
 
-	float attackTimer_;
-
 	float jumpCount_{};
 
-	bool isAttack_ = false;
+	bool isJump_ = false;
+	bool prevAttackPressed_ = false;//前フレームで攻撃ボタンが押されていたか(押した瞬間の検出用)
 	bool isSingleAttack_ = false;
 	bool isDefence_ = false;
 	bool isRight_ = false;//右向いてるかどうか　true:右向き false:左向き
