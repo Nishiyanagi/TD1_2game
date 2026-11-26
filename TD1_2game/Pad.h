@@ -7,12 +7,11 @@ public:
 	void Show();//デバック面
 	void Input();//入力操作
 
-
-
 	int Rx();
 	int Ry();
 	int* Lx();
 	int* Ly();
+
 
 private:
 

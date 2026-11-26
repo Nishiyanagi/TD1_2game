@@ -33,15 +33,24 @@ static int IsTriggerButton(int stickNo, PadButton button);
 const char kWindowTitle[] = "LC1B_16_ニシヤナギ_リョウマ_タイトル";
 
 // ワールド座標の矩形(pos は左上・Y上向き)をカメラ越しに描画する
-static void DrawWorldBox(const Camera& camera, const Vector2& pos, const Vector2& size, unsigned int color)
+static void DrawWorldBox(const Camera& camera, const Vector2& pos, const Vector2& size, const int graphHandle, unsigned int color)
 {
 	const Vector2 leftTop = camera.WorldToScreen(pos);
+	const Vector2 rightTop = camera.WorldToScreen({ pos.x + size.x, pos.y });
+	const Vector2 leftBottom = camera.WorldToScreen({ pos.x, pos.y - size.y });
 	const Vector2 rightBottom = camera.WorldToScreen({ pos.x + size.x, pos.y - size.y });
 
-	Novice::DrawBox(
+	/*Novice::DrawBox(
 		static_cast<int>(leftTop.x), static_cast<int>(leftTop.y),
 		static_cast<int>(rightBottom.x - leftTop.x), static_cast<int>(rightBottom.y - leftTop.y),
-		0.0f, color, kFillModeSolid);
+		0.0f, color, kFillModeSolid);*/
+
+	Novice::DrawQuad(
+		static_cast<int>(leftTop.x), static_cast<int>(leftTop.y),
+		static_cast<int>(rightTop.x), static_cast<int>(rightTop.y),
+		static_cast<int>(leftBottom.x), static_cast<int>(leftBottom.y),
+		static_cast<int>(rightBottom.x), static_cast<int>(rightBottom.y),
+		0, 0, static_cast<int>(size.x), static_cast<int>(size.y), graphHandle, color);
 
 }
 
@@ -66,17 +75,21 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	Random::Init();
 
-	Enemy1* enemy1 = new Enemy1(Vector2(1200.0f, 100.0f), Vector2(100.0f, 100.0f), Vector2(0.0f, 0.0f), 100.0f);
+	Enemy1* enemy1 = new Enemy1(Vector2(1200.0f, 100.0f), Vector2(100.0f, 100.0f), Vector2(0.0f, 0.0f), 100.0f, 
+		Novice::LoadTexture("./NoviceResources/white1x1.png"));
 
-	Weapon* weapon = new Weapon(Vector2(640.0f, 25.0f), Vector2(50.0f, 25.0f), Vector2(5.0f, 5.0f));
+	Weapon* weapon = new Weapon(Vector2(640.0f, 25.0f), Vector2(48.0f, 48.0f), Vector2(5.0f, 5.0f),	
+		Novice::LoadTexture("./NoviceResources/white1x1.png"));
 
 	Cooldown playerInvincible{ 60 };	// プレイヤーの被弾後の無敵時間(フレーム)
-	bool weaponHitDone = false;			// 今回の攻撃でもう当てたか(多段ヒット防止)
-	Cooldown weaponHitTimer{ 12 };		// 攻撃が連続で入るようにするための間隔のタイマ
 	const int kWeaponDamage = 5;
+	const float kReturnDamageMultiplier = 1.5f;	// ブーメランの復路のダメージ倍率
+	const float kEnemyKnockbackSpeed = 12.0f;	// ブーメランが当たったときの、敵の吹っ飛びの初速(大きいほど遠くへ飛ぶ)
 	const float kContactDamage = 2.0f;
 	float kWorldOriginY = 800.0f; // 従来の「ワールドのY=0が画面のどこか」(画面の見た目を変えないために使う)
 
+	//bool isPadAttackTrigger = false; //パッドで攻撃したか
+	
 	// カメラ: 今までと同じ見た目(Y=0が画面の800px)になるよう、カメラ中心のYを決める
 	const float kCameraY = kWorldOriginY - kWindowHeight * 0.5f;
 
@@ -87,7 +100,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		kCameraY,            // minY: 今の見た目(地面が画面の800px)より下には行かない
 		kCameraY + 1000.0f); // maxY: 上方向にどこまでスクロールするか
 
-	player = new Player(Vector2(640.0f, 50.0f), Vector2(5.0f, 5.0f), Vector2(50.0f, 50.0f), 100.0f, camera);
+	player = new Player(Vector2(640.0f, 64.0f), Vector2(5.0f, 5.0f), Vector2(64.0f, 64.0f), 100.0f, camera, 
+		Novice::LoadTexture("./NoviceResources/white1x1.png"));
 	// 回復(数値はここで調整)
 	const int kFlaskCooldown = 600;       // 常備の回復のクールタイム(フレーム。600 = 10秒)
 	const float kFlaskAmount = 20.0f;     // 常備の回復の回復量
@@ -143,47 +157,42 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #pragma endregion
 
-		if (player->Attack(weapon->Pos(), mouseDirection))
-		{
-			player->attackTimer();
-			if (!player->isSingleAttack())
-			{
-				weapon->Move(inputKeys, weapon->Velocity(), pad);
-			}
+		player->Jump(inputKeys, inputPreKeys, *player->Velocity());
+		if (!player->Defence()) {
+			player->Move(inputKeys, *player->Velocity(), pad);
 		}
-		else
-		{
-			if (!player->isSingleAttack())
-			{
-				weapon->PosReset(player->Pos());
-			}
+		pad->Input();
 
-			player->Jump(inputKeys, inputPreKeys, *player->Velocity());
-			if (!player->Defence()) {
-				player->Move(inputKeys, *player->Velocity(), pad);
+		// 重力は常にかかる(攻撃中も、空中にいれば落ちる)
+		player->UpdateGravity();
 
-			}
-			pad->Input();
-		}
-
-		if (player->isSingleAttack())
-		{
-			// パッド操作中の mouseDirection は純粋な方向なので、マウス用のスクロール補正は入れない
-			const Vector2 scrollForAim = InputDevice::UsePad() ? Vector2{ 0.0f, 0.0f } : camera->ScrollPos();
-			weapon->SingleAttack(weapon->Velocity(), mouseDirection, scrollForAim/*, pad*/);
-		}
+		//if (player->isSingleAttack())
+		//{
+		//	// パッド操作中の mouseDirection は純粋な方向なので、マウス用のスクロール補正は入れない
+		//	const Vector2 scrollForAim = InputDevice::UsePad() ? Vector2{ 0.0f, 0.0f } : camera->ScrollPos();
+		//	weapon->SingleAttack(weapon->Velocity(), mouseDirection, scrollForAim, isPadAttackTrigger/*, pad*/);
+		//}
 
 		player->Defence();
 
 		// 追加: プレイヤーがステージの外に出ないようにする(Player に ClampX を追加する必要あり)
 		player->ClampX(0.0f, kWorldWidth);
 
-		player->attackTimer();
+		// 攻撃ボタンを押した瞬間にブーメランを投げる状態になる
+		player->UpdateAttack(mouseDirection);
 
-		weapon->SetActive(player->Attack(weapon->Pos(), mouseDirection) || player->isSingleAttack());
-
-		weapon->IsActive();
-
+		// ブーメラン: 投げる → 飛行の更新 → キャッチ
+		const Vector2 playerCenterNow{
+			player->Pos().x + player->Size().x * 0.5f,
+			player->Pos().y - player->Size().y * 0.5f
+		};
+		if (player->isSingleAttack() && !weapon->IsFlying()) {
+			weapon->Throw(playerCenterNow, mouseDirection);
+		}
+		if (weapon->UpdateBoomerang(playerCenterNow)) {
+			player->SetSingleAttack(false);   // キャッチ → 次の攻撃が可能に
+			// ここにキャッチ成功の演出やクールタイム短縮を入れられる
+		}
 
 #pragma region Collision
 
@@ -198,32 +207,30 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			playerInvincible.Start();
 		}
 
-		// 武器 → 敵(1回の攻撃につき1ヒット)
-		if (weapon->IsActive()) {
+		// 武器(ブーメラン) → 敵: 往路と復路で1回ずつ当たる(復路はダメージ増)
+		if (weapon->IsFlying()) {
 			const Rect weaponRect = MakeRect(weapon->Pos(), weapon->Size());
-			if (!weaponHitDone && IsHit(weaponRect, enemyRect)) {
-				enemy1->Damage(kWeaponDamage);
-				weaponHitTimer.Start();
-				weaponHitDone = true;
+			const Vector2 enemyCenter{
+				enemy1->Pos().x + enemy1->Size().x * 0.5f,
+				enemy1->Pos().y - enemy1->Size().y * 0.5f };
+			if (IsHit(weaponRect, enemyRect) && weapon->TryHit(enemyCenter)) {
+				const float damage = weapon->IsReturning()
+					? kWeaponDamage * kReturnDamageMultiplier
+					: static_cast<float>(kWeaponDamage);
+				enemy1->Damage(damage);
+
+				// 敵はブーメランから離れる向きに少し吹っ飛ぶ
+				const float weaponCenterX = weapon->Pos().x + weapon->Size().x * 0.5f;
+				const float knockDir = (enemyCenter.x >= weaponCenterX) ? 1.0f : -1.0f;
+				enemy1->Knockback(knockDir * kEnemyKnockbackSpeed);
 
 				// 一定確率でリジェネのアイテムが敵の位置に出る
 				if (Random::Chance(kDropChance)) {
 					drops.push_back(HealDrop(Vector2(
 						enemy1->Pos().x + enemy1->Size().x * 0.5f,
-						enemy1->Pos().y - enemy1->Size().y * 0.5f)));
+						enemy1->Pos().y - enemy1->Size().y * 0.5f), 0));
 				}
 			}
-			else if (weaponHitDone) {
-				weaponHitTimer.Update();
-				if (weaponHitTimer.IsReady()) {
-					weaponHitDone = false;
-				}
-
-				player->SetSingleAttack(false);
-			}
-		}
-		else {
-			weaponHitDone = false;
 		}
 
 #pragma endregion
@@ -270,6 +277,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #ifdef _DEBUG
 
+		// 仮背景
+		//Novice::DrawBox(0, 0, kWindowWidth, kWindowHeight, 0.0f, 0x90ee90FF, kFillModeSolid);
+
 		// 【仮】スクロールが分かりやすいよう、ステージに縦線を引く(不要になったら消してください)
 		for (float x = 0.0f; x <= kWorldWidth; x += 240.0f) {
 			DrawWorldLine(*camera, Vector2(x, 800.0f), Vector2(x, 0.0f), 0x404040ff);
@@ -279,30 +289,31 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #pragma region Enemy1
 
-		DrawWorldBox(*camera, enemy1->Pos(), enemy1->Size(), 0x40C040ff);
+		DrawWorldBox(*camera, enemy1->Pos(), enemy1->Size(), enemy1->GraphHandle(), 0x40C040ff);
 
 #pragma endregion
 
 		// 回復アイテム(ドロップ)
 		for (const HealDrop& drop : drops) {
 			if (drop.ShouldDraw()) {
-				DrawWorldBox(*camera, drop.Pos(), drop.Size(), 0x60FF90ff);
+				DrawWorldBox(*camera, drop.Pos(), drop.Size(), drop.GraphHandle(), 0x60FF90ff);
 			}
 		}
 
-		if (player->Attack(weapon->Pos(), mouseDirection)) {//攻撃時
-			DrawWorldBox(*camera, player->Pos(), player->Size(), 0xD06060ff);
+		if (weapon->IsFlying()) {//攻撃時
+			DrawWorldBox(*camera, player->Pos(), player->Size(), player->GraphHandle(), 0xD06060ff);
 		}
 		else if (player->Defence()) {//ガード時
-			DrawWorldBox(*camera, player->Pos(), player->Size(), 0x6060D0ff);
+			DrawWorldBox(*camera, player->Pos(), player->Size(), player->GraphHandle(), 0x6060D0ff);
 		}
 		else {//攻撃、ガード無し
-			DrawWorldBox(*camera, player->Pos(), player->Size(), WHITE);
+			DrawWorldBox(*camera, player->Pos(), player->Size(), player->GraphHandle(), WHITE);
 		}
 
 		// 武器の描画
 		if (weapon->IsActive()) {
-			DrawWorldBox(*camera, weapon->Pos(), weapon->Size(), BLACK);
+			DrawWorldBox(*camera, weapon->Pos(), weapon->Size(), weapon->GraphHandle(), BLACK);
+			
 		}
 
 		// 地面
@@ -310,7 +321,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #ifdef _DEBUG
 		Novice::ScreenPrintf(0, 0, "JumpCount:%.1f", player->JumpCount());
-		if (player->Attack(weapon->Pos(), mouseDirection)) {//攻撃時
+		if (weapon->IsFlying()) {//攻撃時
 			Novice::ScreenPrintf(0, 20, "Acction:Attack");
 
 		}
@@ -329,12 +340,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		Novice::ScreenPrintf(0, 80, "EnemyHP:%.1f", enemy1->Hp());
 		Novice::ScreenPrintf(0, 120, "Camera:%.1f %.1f", camera->Pos().x, camera->Pos().y);
 		Novice::ScreenPrintf(0, 140, "Flask:%s  Regen:x%d", flask.IsReady() ? "READY" : "COOLDOWN", regen.Stacks());
-		Novice::ScreenPrintf(0, 160, "Input:%s  (K to change)", InputDevice::UsePad() ? "PAD" : "KEYBOARD+MOUSE");
-		int debugLx = 0;
-		int debugLy = 0;
-		InputDevice::GetAnalogInputLeft(&debugLx, &debugLy);
-		Novice::ScreenPrintf(0, 180, "LStick:%d %d", debugLx, debugLy);
-		Novice::ScreenPrintf(300, 180, "AimDir:%.1f %.1f", mouseDirection.x, mouseDirection.y);
+		Novice::ScreenPrintf(0, 160, "Input:%s  (Kで切り替え)", InputDevice::UsePad() ? "PAD" : "KEYBOARD+MOUSE");
 
 		pad->Show();
 		player->Show();

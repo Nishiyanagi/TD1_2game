@@ -4,18 +4,19 @@
 #include "Camera.h"
 #include "Pad.h"
 #include "InputDevice.h"
+#include "World.h"
 #include <math.h>
 #include <Novice.h>
 
-Player::Player(Vector2 position, Vector2 speed, Vector2 range, float hp, Camera* camera)
+Player::Player(Vector2 position, Vector2 speed, Vector2 range, float hp, Camera* camera, int graphHandle)
 	:pos_{ position },
 	velocity_{ speed },
 	size_{ range },
 	acceleration_{ 0.0f,0.5f },
 	hp_{ hp },
 	maxHp_{ hp },
-	camera_{ camera }
-{
+	camera_{ camera },
+	graphHandle_{ graphHandle } {
 }
 
 bool Player::Defence() {
@@ -28,24 +29,34 @@ bool Player::Defence() {
 }
 void Player::Jump(const char* keys, const char* preKeys, Vector2& speed) {
 
+	// ジャンプの入力: 上向きの初速を与えるだけ。動かすのは UpdateGravity
 	if ((keys[DIK_SPACE] && !preKeys[DIK_SPACE] || InputDevice::IsTriggerButton(kPadButton10)) && !Player::Defence()) {
-		isJump_ = true;
 		jumpCount_++;
 		speed.y = 10.0f * (1.0f - jumpCount_ / 15);
 	}
-	if (isJump_) {
+}
 
-		if ((pos_.y < line->StartPos().y + size_.y || pos_.y < line->EndPos().y + size_.y)) {
-			pos_.y = line->StartPos().y + size_.y;
-			speed.y = 0;
-			jumpCount_ = 0;
-		}
-		else {
-			pos_.y += speed.y;
-			speed.y -= acceleration_.y;
-		}
+void Player::UpdateGravity() {
+	// 縦の移動(ジャンプの初速も、落下も、ここで動かす)
+	pos_.y += velocity_.y;
+
+	// 重力は常に一定でかかる
+	velocity_.y -= acceleration_.y;
+
+	// 落ちる速さの上限
+	if (velocity_.y < -kMaxFallSpeed) {
+		velocity_.y = -kMaxFallSpeed;
+	}
+
+	// 地面に着いた(足元は pos_.y - size_.y)
+	const float groundY = fmaxf(line->StartPos().y, line->EndPos().y) + size_.y;
+	if (pos_.y <= groundY) {
+		pos_.y = groundY;
+		velocity_.y = 0.0f;
+		jumpCount_ = 0;
 	}
 }
+
 void Player::Move(const char* keys, Vector2 speed, Pads* pad) {
 	if (keys[DIK_D]) {
 		pos_.x += speed.x;
@@ -57,9 +68,6 @@ void Player::Move(const char* keys, Vector2 speed, Pads* pad) {
 	}
 
 	InputDevice::GetAnalogInputLeft(pad->Lx(), pad->Ly());//Lスティックが入力された時の値を返す関数
-	// パッド操作中も、スティックを倒した向きに合わせて向き(isRight_)を更新する
-	if (*pad->Lx() > 8000) { isRight_ = true; }
-	else if (*pad->Lx() < -8000) { isRight_ = false; }
 	speed.x *= static_cast<float>(*pad->Lx()) / 32768;
 	pos_.x += speed.x;
 
@@ -77,7 +85,7 @@ void Player::ClampX(float minX, float maxX)
 
 void Player::Show()
 {
-	Novice::ScreenPrintf(0, 40, "AttackTimer:%f", attackTimer_);
+	Novice::ScreenPrintf(0, 40, "SingleAttack:%d", isSingleAttack_ ? 1 : 0);
 }
 
 bool Player::WeaponHit() {
@@ -92,16 +100,20 @@ void Player::Heal(float amount)
 	if (hp_ > maxHp_) { hp_ = maxHp_; }
 }
 
-void Player::GetCursorDirection(Vector2 Pos, Vector2& mouseDirection) {
-	// パッド操作中はマウスを使わず、左スティックの向きで狙う(倒していなければ向いている方向)
-	if (InputDevice::UsePad()) {
-		constexpr float kStickMax = 32768.0f;
-		constexpr float kDeadZone = 0.3f;     // これより小さい入力は「倒していない」とみなす
-		constexpr float kAimLength = 300.0f;  // 方向ベクトルの長さ(マウス操作での、プレイヤーからカーソルまでの距離に相当)
+void Player::GetCursorDirection(Vector2& mouseDirection) {
 
-		int lx = 0;
-		int ly = 0;
+	int lx = 0;
+	int ly = 0;
+	constexpr float kStickMax = 32768.0f;
+	constexpr float kDeadZone = 0.3f;     // これより小さい入力は「倒していない」とみなす
+	constexpr float kAimLength = 300.0f; // 方向ベクトルの長さ(マウス操作での、プレイヤーからカーソルまでの距離に相当)
+
+
+	// パッド操作中はマウスを使わず、左スティックの向きで狙う(倒していなければ向いている方向)
+	if (InputDevice::UsePad() /*&&(Novice::IsTriggerButton(0, kPadButton9) || Novice::IsTriggerButton(0, kPadButton15))*/) {
+
 		InputDevice::GetAnalogInputLeft(&lx, &ly);
+
 
 		float x = static_cast<float>(lx) / kStickMax;
 		float y = static_cast<float>(ly) / -kStickMax;   // スティックは上が負なので、ワールド(Y上向き)に合わせて反転
@@ -117,47 +129,46 @@ void Player::GetCursorDirection(Vector2 Pos, Vector2& mouseDirection) {
 		}
 
 		mouseDirection = { x * kAimLength, y * kAimLength };
+
+		Novice::ScreenPrintf(200, 0, "mouseDirection.x:%.1f", mouseDirection.x);
+		Novice::ScreenPrintf(200, 20, "mouseDirection.y:%.1f", mouseDirection.y);
+
 		return;
 	}
 
 	int mousePositionX{};
 	int mousePositionY{};
-	Vector2 playerInversePos{};
-	Novice::GetMousePosition(&mousePositionX, &mousePositionY);//マウスのポジション取得
-	playerInversePos = { camera_->ScreenToWorld(Pos) };
+	InputDevice::GetMousePosition(&mousePositionX, &mousePositionY);//マウスのポジション取得(スクリーン座標)
 
-	mouseDirection.x = (static_cast<float>(mousePositionX) - playerInversePos.x) - size_.x * 0.5f;
-	mouseDirection.y = ((static_cast<float>(mousePositionY) - playerInversePos.y) * -1 + size_.y * 0.5f);
+	// マウスをワールド座標(Y上向き)に変換して、プレイヤーの中心からの向きを求める
+	// (カメラがスクロールしていてもずれない)
+	const Vector2 mouseWorld = camera_->ScreenToWorld(
+		Vector2(static_cast<float>(mousePositionX), static_cast<float>(mousePositionY)));
+	const Vector2 playerCenter = { pos_.x + size_.x * 0.5f, pos_.y - size_.y * 0.5f };
 
-	Novice::ScreenPrintf(200, 0, "mouceDirection.x:%.1f", mouseDirection.x);
-	Novice::ScreenPrintf(200, 20, "mouceDirection.y:%.1f", mouseDirection.y);
+	mouseDirection.x = mouseWorld.x - playerCenter.x;
+	mouseDirection.y = mouseWorld.y - playerCenter.y;
+
+
+	Novice::ScreenPrintf(200, 0, "mouseDirection.x:%.1f", mouseDirection.x);
+	Novice::ScreenPrintf(200, 20, "mouseDirection.y:%.1f", mouseDirection.y);
+
+
+
+
+
+
 }
 
-bool Player::Attack(Vector2 weaponPos, Vector2& mouseDirection) {
-	if (InputDevice::IsPressMouse(0) || InputDevice::IsPressButton(kPadButton15) || InputDevice::IsPressButton(kPadButton9)) {
-		if (attackTimer_ >= 300)
-		{
-			attackTimer_ = 0;
-			return isAttack_ = false, isSingleAttack_ = false;
-		}
-		else
-		{
-			return isAttack_ = true;
-		}
+void Player::UpdateAttack(Vector2& mouseDirection) {
+	const bool pressed = InputDevice::IsPressMouse(0) || InputDevice::IsPressButton(kPadButton15) || InputDevice::IsPressButton(kPadButton9);
+
+	// 押した瞬間だけ投げる(押しっぱなしにしても連続では出ない。戻ってくるまでは次を投げられない)
+	if (pressed && !prevAttackPressed_ && !isSingleAttack_) {
+		GetCursorDirection(mouseDirection);
+		isSingleAttack_ = true;
 	}
-	else {
-		if (attackTimer_ >= 2 && attackTimer_ <= 12)
-		{
-			GetCursorDirection(weaponPos, mouseDirection);
-			isSingleAttack_ = true;
-		}
-		//if () //武器が消える条件
-		//{
-		//	isSingleAttack_ = false;
-		//}
-		attackTimer_ = 0;
-		return isAttack_ = false;
-	}
+	prevAttackPressed_ = pressed;
 }
 
 void Player::Damage(float amount)
@@ -173,7 +184,7 @@ Vector2 Player::Pos() {//場所確認
 Vector2 Player::Size() {//大きさ確認
 	return size_;
 }
-
+//ども
 Vector2* Player::Velocity() {//速度確認
 	return &velocity_;
 }
@@ -183,16 +194,6 @@ float  Player::JumpCount() {//ジャンプ回数確認
 float  Player::HP() {//HP確認
 	return hp_;
 }
-
-float Player::attackTimer() {//攻撃タイマー増加
-	attackTimer_++;
-	return attackTimer_;
-}
-float Player::SetAttackTimer(float times) {//攻撃タイマー代入
-	attackTimer_ = times;
-	return attackTimer_;
-}
-
 
 bool Player::isRight() {
 	return isRight_;

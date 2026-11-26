@@ -20,7 +20,7 @@ kPadButton14 ・・・ L2
 kPadButton15 ・・・ R2
 */
 void Pads::Input() {
-	
+
 
 
 	n_ = 0;
@@ -31,7 +31,7 @@ void Pads::Input() {
 
 	}*/
 
-
+	//マージした
 	if (Novice::IsPressButton(0, kPadButton8) || Novice::IsPressButton(0, kPadButton14)) {//L1かL2を押したら
 
 		n_++;
@@ -60,10 +60,10 @@ int Pads::Ry() {
 int* Pads::Lx() {
 	return &Lx_;
 }
-int* Pads::Ly(){
+int* Pads::Ly() {
 	return &Ly_;
 }
-	
+
 
 void Pads::Show() {
 	Novice::ScreenPrintf(0, 100, "n = %d", n_);

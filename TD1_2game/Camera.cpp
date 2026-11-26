@@ -4,7 +4,7 @@
 
 Camera::Camera(Vector2 position, Vector2 screenSize, float worldWidth, float minY, float maxY)
 	: pos_{ position },
-	scrollPos_{0.0f,0.0f},
+	scrollPos_{ 0.0f,0.0f },
 	screenSize_{ screenSize },
 	worldWidth_{ worldWidth },
 	minY_{ minY },
@@ -16,14 +16,40 @@ Camera::Camera(Vector2 position, Vector2 screenSize, float worldWidth, float min
 
 void Camera::Update(const Vector2& targetPos)
 {
-	// 横だけ追従する(縦は固定)。ガクッとならないよう、少しずつ近づける
-	pos_.x += (targetPos.x - pos_.x)* kFollow;
+	// 追いかける目標を、先にカメラが映せる範囲に収めておく。
+	// (範囲の外の目標を追いかけて、最後に ClampToWorld で急に止めると、
+	//  画面の中のプレイヤーの動きが、その瞬間だけ急に速く見えてしまう)
+	const Vector2 target = ClampTarget(targetPos);
 
-	pos_.y += (targetPos.y - pos_.y) * kFollow;
+	// ガクッとならないよう、少しずつ近づける(縦は横よりゆっくり)
+	pos_.x += (target.x - pos_.x) * kFollow;
+	pos_.y += (target.y - pos_.y) * kFollowY;
 
-	
 	ClampToWorld();
 	UpdateMatrix();
+}
+
+Vector2 Camera::ClampTarget(const Vector2& target) const
+{
+	Vector2 result = target;
+
+	// 横: ステージが画面より狭いときは中央、広いときはステージの端まで
+	const float halfWidth = screenSize_.x * 0.5f;
+	if (worldWidth_ <= screenSize_.x) {
+		result.x = worldWidth_ * 0.5f;
+	}
+	else if (result.x < halfWidth) {
+		result.x = halfWidth;
+	}
+	else if (result.x > worldWidth_ - halfWidth) {
+		result.x = worldWidth_ - halfWidth;
+	}
+
+	// 縦
+	if (result.y < minY_) { result.y = minY_; }
+	else if (result.y > maxY_) { result.y = maxY_; }
+
+	return result;
 }
 
 Vector2 Camera::ScrollPos() {
