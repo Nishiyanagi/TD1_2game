@@ -18,6 +18,36 @@ Matrix3x3 MakeTranslateMatrix(Vector2 translate)
 	return matrix;
 }
 
+Matrix3x3 MakeRotateMatrix(float theta)
+{
+	Matrix3x3 rotationMatrix;
+	rotationMatrix.m[0][0] = cosf(theta);
+	rotationMatrix.m[0][1] = sinf(theta);
+	rotationMatrix.m[0][2] = 0.0f;
+	rotationMatrix.m[1][0] = -sinf(theta);
+	rotationMatrix.m[1][1] = cosf(theta);
+	rotationMatrix.m[1][2] = 0.0f;
+	rotationMatrix.m[2][0] = 0.0f;
+	rotationMatrix.m[2][1] = 0.0f;
+	rotationMatrix.m[2][2] = 1.0f;
+	return rotationMatrix;
+}
+
+Matrix3x3 MakeScaleMatrix(Vector2 scale)
+{
+	Matrix3x3 scaleMatrix;
+	scaleMatrix.m[0][0] = scale.x;
+	scaleMatrix.m[0][1] = 0.0f;
+	scaleMatrix.m[0][2] = 0.0f;
+	scaleMatrix.m[1][0] = 0.0f;
+	scaleMatrix.m[1][1] = scale.y;
+	scaleMatrix.m[1][2] = 0.0f;
+	scaleMatrix.m[2][0] = 0.0f;
+	scaleMatrix.m[2][1] = 0.0f;
+	scaleMatrix.m[2][2] = 1.0f;
+	return scaleMatrix;
+}
+
 Matrix3x3 MakeOrthographicMatrix(float left, float top, float right, float bottom)
 {
 	Matrix3x3 result = MakeIdentityMatrix();
