@@ -264,7 +264,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 #ifdef _DEBUG
 
 		// 仮背景
-		Novice::DrawBox(0, 0, kWindowWidth, kWindowHeight, 0.0f, 0x90ee90FF, kFillModeSolid);
+		//Novice::DrawBox(0, 0, kWindowWidth, kWindowHeight, 0.0f, 0x90ee90FF, kFillModeSolid);
 
 		// 【仮】スクロールが分かりやすいよう、ステージに縦線を引く(不要になったら消してください)
 		for (float x = 0.0f; x <= kWorldWidth; x += 240.0f) {
