@@ -5,8 +5,8 @@ namespace {
 	constexpr float kPi = 3.14159265f;
 }
 
-Weapon::Weapon(Vector2 pos, Vector2 size, Vector2 velocity)
-	: pos_(pos), size_(size), velocity_(velocity)
+Weapon::Weapon(Vector2 pos, Vector2 size, Vector2 velocity, int graphHandle)
+	: pos_(pos), size_(size), velocity_(velocity), graphHandle_(graphHandle)
 {
 
 }

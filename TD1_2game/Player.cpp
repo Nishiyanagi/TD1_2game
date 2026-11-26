@@ -8,15 +8,15 @@
 #include <math.h>
 #include <Novice.h>
 
-Player::Player(Vector2 position, Vector2 speed, Vector2 range, float hp, Camera* camera)
+Player::Player(Vector2 position, Vector2 speed, Vector2 range, float hp, Camera* camera, int graphHandle)
 	:pos_{ position },
 	velocity_{ speed },
 	size_{ range },
 	acceleration_{ 0.0f,0.5f },
 	hp_{ hp },
 	maxHp_{ hp },
-	camera_{ camera }
-{
+	camera_{ camera },
+	graphHandle_{ graphHandle } {
 }
 
 bool Player::Defence() {

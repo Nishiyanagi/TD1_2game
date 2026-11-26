@@ -3,11 +3,12 @@
 #include <stdio.h>
 
 
-Enemy::Enemy(Vector2 position, Vector2 size, Vector2 velocity, float hp)
+Enemy::Enemy(Vector2 position, Vector2 size, Vector2 velocity, float hp, int graphHandle)
 	: pos_{ position },
 	size_{ size },
 	velocity_{ velocity },
-	hp_{ float(hp) } {
+	hp_{ float(hp) },
+	graphHandle_{ graphHandle} {
 }
 
 void Enemy::Damage(float amount)
