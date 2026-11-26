@@ -58,7 +58,6 @@ static void DrawWorldLine(const Camera& camera, const Vector2& start, const Vect
 Camera* camera;
 Player* player;
 
-
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
@@ -176,54 +175,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		const Rect playerRect = MakeRect(player->Pos(), player->Size());
 		const Rect enemyRect = enemy1->GetRect();
 
-		Rect weaponRect{};
-
-		
-		
-		// 武器 → 自分(長押しで動かせる武器を曲げて自分にぶつける)
-		const bool canSelfHit = isAttacking	&&						 /*player->isSingleAttack()*/
-								!weapon->IsReturning() && 
-								!player->IsLaunched();
-	
-		/*const bool singleHit = isAttacking && player->isSingleAttack()
-			&& !weapon->IsReturning() && !player->IsLaunched();*/
-
-		if (canSelfHit || singleAttack) {
-			weaponRect = MakeRect(weapon->Pos(), weapon->Size());
-			if (!IsHit(weaponRect, playerRect)) {
-				weaponAwayFromPlayer = true;          // 一度離れた
-
-			}
-			else if (weaponAwayFromPlayer) {
-				// 武器の中心 → プレイヤーの中心 の向き = 当たった側と逆
-			
-				const Vector2 weaponCenter{
-					weapon->Pos().x + weapon->Size().x * 0.5f,
-					weapon->Pos().y - weapon->Size().y * 0.5f };
-				const Vector2 playerCenterNow{
-					player->Pos().x + player->Size().x * 0.5f,
-					player->Pos().y - player->Size().y * 0.5f };
-				player->StartLaunch(Vector2(
-					playerCenterNow.x - weaponCenter.x,
-					playerCenterNow.y - weaponCenter.y));
-				weapon->PosReset(player->Pos());      // 武器はプレイヤーに吸収
-				weaponAwayFromPlayer = false;
-				launchHitDone = false;
-			}
-
-		}
-		else {
-			weaponAwayFromPlayer = false;
-		}
-
-		// 吹っ飛び中のプレイヤー → 敵(1回の吹っ飛びにつき1ヒット)
-		if (player->IsLaunched() && !launchHitDone && IsHit(playerRect, enemyRect)) {
-			enemy1->Damage(kLaunchDamage);
-			launchHitDone = true;
-		}
-
-		// 敵 → プレイヤー(接触ダメージ。吹っ飛び中は受けない)
-		if (!player->IsLaunched() && playerInvincible.IsReady() && IsHit(playerRect, enemyRect)) {
+		// 敵 → プレイヤー(接触ダメージ。敵の状態にかかわらず、重なっていれば入る)
+		if (playerInvincible.IsReady() && IsHit(playerRect, enemyRect)) {
 			player->Damage(kContactDamage);
 			playerInvincible.Start();
 		}
@@ -355,12 +308,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		Novice::ScreenPrintf(0, 60, "PlayerHP:%.1f", player->HP());
 		Novice::ScreenPrintf(200, 60, "PlayerSpeed:%.1f %.1f", player->Velocity()->x, player->Velocity()->y);
 		Novice::ScreenPrintf(0, 80, "EnemyHP:%.1f", enemy1->Hp());
-		Novice::ScreenPrintf(0, 240, "singleAttack:%d", singleAttack);
-		Novice::ScreenPrintf(0, 260, "isAttacking:%d", isAttacking);
 		Novice::ScreenPrintf(0, 120, "Camera:%.1f %.1f", camera->Pos().x, camera->Pos().y);
 		Novice::ScreenPrintf(0, 140, "Flask:%s  Regen:x%d", flask.IsReady() ? "READY" : "COOLDOWN", regen.Stacks());
-		Novice::ScreenPrintf(0, 160, "Input:%s  (K to change)", InputDevice::UsePad() ? "PAD" : "KEYBOARD+MOUSE");
-		Novice::ScreenPrintf(0, 180, "Weapon:%s", weapon->IsReturning() ? "RETURNING" : "-");
+		Novice::ScreenPrintf(0, 160, "Input:%s  (Kで切り替え)", InputDevice::UsePad() ? "PAD" : "KEYBOARD+MOUSE");
 
 		pad->Show();
 		player->Show();

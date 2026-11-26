@@ -25,9 +25,6 @@ public:
 	void GetCursorDirection(Vector2& mouseDirection);//プレイヤーの向いてる方向をマウスカーソルを追尾する関数
 	bool WeaponHit();//自傷で吹っ飛ぶ時の、ヒット処理
 	void Heal(float amount);
-	void StartLaunch(Vector2 direction);              // 自分の武器に当たって吹っ飛び始める(direction は飛ぶ向き。長さは問わない)
-	void UpdateLaunch(const char* keys, Pads* pad);   // 吹っ飛び中の移動を1フレーム進める
-	bool IsLaunched() const;                          // 吹っ飛び中か
 
 	Vector2 Pos();//場所確認
 	Vector2 Size();//大きさ確認
@@ -36,7 +33,6 @@ public:
 	float HP();//HP確認
 	bool isRight();//向き確認
 	bool isSingleAttack();//単発攻撃確認
-	bool ConsumeHoldTimeUp();//長押しの時間が来たら true(1回だけ)。武器を戻し始める合図
 
 private:
 	Vector2 pos_{};

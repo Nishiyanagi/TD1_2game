@@ -36,8 +36,6 @@ private:
 	Vector2 pos_{};   // 左上(Y上向き)
 	Vector2 size_{};
 	Vector2 velocity_{};
-	Vector2 returnSpeed_ = { 15.0f,15.0f };    // 戻ってくる速さ
-	float targetPosTime_{};//対象の座標に向くタイミング
 	bool isActive_ = false;
 
 	// ブーメラン用
@@ -59,7 +57,7 @@ private:
 
 	static constexpr float kStartSpeed = 24.0f;    // 投げた直後の速さ(px/フレーム)
 	static constexpr float kMinSpeed = 18.0f;      // これ以下には遅くならない速さ(px/フレーム)
-	static constexpr float kDeceleration = 0.1f;   // 1フレームごとに遅くなる量(px/フレーム)
+	static constexpr float kDeceleration = 0.5f;   // 1フレームごとに遅くなる量(px/フレーム)
 	static constexpr float kRange = 700.0f;      // 飛ぶ距離
 	static constexpr float kTurnRadius = 160.0f; // 折り返しの丸さ(曲がる半径px。大きいほど大きく丸く曲がる)
 	static constexpr float kMinTurnRadius = 12.0f; // プレイヤーのすぐ近くで曲がるときの、半径の下限

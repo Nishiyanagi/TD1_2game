@@ -1,9 +1,5 @@
 #include "Weapon.h"
 #include <math.h>
-#include <Novice.h>
-#define _USE_MATH_DEFINES
-#include <math.h>
-//ここにthetaいれて、ブーメランの返ってくる挙動を弧にしたい
 
 namespace {
 	constexpr float kPi = 3.14159265f;
@@ -202,7 +198,6 @@ bool Weapon::UpdateBoomerang(const Vector2& playerCenter)
 	// 投げてから少しずつ遅くなる。ただし kMinSpeed より遅くはならない
 	speed_ -= kDeceleration;
 	if (speed_ < kMinSpeed) { speed_ = kMinSpeed; }
-	Novice::ScreenPrintf(200, 80, "WeaponSpeed:%.1f", speed_);
 
 	// 反動のずれを足す
 	center.x += recoilOffset_.x;
