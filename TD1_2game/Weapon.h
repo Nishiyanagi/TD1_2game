@@ -10,7 +10,7 @@ public:
 		Return,  // 復路(プレイヤーへ戻ってくる)
 	};
 
-	Weapon(Vector2 pos, Vector2 size, Vector2 velocity);
+	Weapon(Vector2 pos, Vector2 size, Vector2 velocity, int graphHandle);
 
 	// ---- ブーメラン ----
 	// originCenter: 投げる位置(プレイヤーの中心) / direction: 狙う方向(長さは何でもよい)
@@ -23,6 +23,7 @@ public:
 
 	bool IsFlying() const { return phase_ != Phase::Idle; }
 	bool IsReturning() const { return phase_ == Phase::Return; }
+	const int& GraphHandle() const { return graphHandle_; }
 
 	Vector2 Pos();//場所確認
 	Vector2 Size();//大きさ確認
@@ -37,6 +38,9 @@ private:
 	Vector2 size_{};
 	Vector2 velocity_{};
 	bool isActive_ = false;
+
+	int graphHandle_;
+
 
 	// ブーメラン用
 	Phase phase_ = Phase::Idle;

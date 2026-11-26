@@ -13,7 +13,7 @@ class Camera;
 class Player {
 public:
 
-	Player(Vector2 position, Vector2 speed, Vector2 range, float hp, Camera* camera);
+	Player(Vector2 position, Vector2 speed, Vector2 range, float hp, Camera* camera, int graphHandle);
 	void Jump(const char* keys, const char* preKeys, Vector2& speed);
 	void Move(const char* keys, Vector2 speed, Pads* pad);
 	void ClampX(float minX, float maxX); // プレイヤーの行動範囲のX座標
@@ -34,11 +34,15 @@ public:
 	bool isRight();//向き確認
 	bool isSingleAttack();//単発攻撃確認
 
+	const int& GraphHandle() const { return graphHandle_; }
+
 private:
 	Vector2 pos_{};
 	Vector2 size_{};
 	Vector2 velocity_{};
 	Vector2 acceleration_{};
+
+	int graphHandle_{};
 
 	Camera* camera_{};
 

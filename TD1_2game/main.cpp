@@ -33,15 +33,24 @@ static int IsTriggerButton(int stickNo, PadButton button);
 const char kWindowTitle[] = "LC1B_16_ニシヤナギ_リョウマ_タイトル";
 
 // ワールド座標の矩形(pos は左上・Y上向き)をカメラ越しに描画する
-static void DrawWorldBox(const Camera& camera, const Vector2& pos, const Vector2& size, unsigned int color)
+static void DrawWorldBox(const Camera& camera, const Vector2& pos, const Vector2& size, const int graphHandle, unsigned int color)
 {
 	const Vector2 leftTop = camera.WorldToScreen(pos);
+	const Vector2 rightTop = camera.WorldToScreen({ pos.x + size.x, pos.y });
+	const Vector2 leftBottom = camera.WorldToScreen({ pos.x, pos.y - size.y });
 	const Vector2 rightBottom = camera.WorldToScreen({ pos.x + size.x, pos.y - size.y });
 
-	Novice::DrawBox(
+	/*Novice::DrawBox(
 		static_cast<int>(leftTop.x), static_cast<int>(leftTop.y),
 		static_cast<int>(rightBottom.x - leftTop.x), static_cast<int>(rightBottom.y - leftTop.y),
-		0.0f, color, kFillModeSolid);
+		0.0f, color, kFillModeSolid);*/
+
+	Novice::DrawQuad(
+		static_cast<int>(leftTop.x), static_cast<int>(leftTop.y),
+		static_cast<int>(rightTop.x), static_cast<int>(rightTop.y),
+		static_cast<int>(leftBottom.x), static_cast<int>(leftBottom.y),
+		static_cast<int>(rightBottom.x), static_cast<int>(rightBottom.y),
+		0, 0, static_cast<int>(size.x), static_cast<int>(size.y), graphHandle, color);
 
 }
 
@@ -66,9 +75,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	Random::Init();
 
-	Enemy1* enemy1 = new Enemy1(Vector2(1200.0f, 100.0f), Vector2(100.0f, 100.0f), Vector2(0.0f, 0.0f), 100.0f);
+	Enemy1* enemy1 = new Enemy1(Vector2(1200.0f, 100.0f), Vector2(100.0f, 100.0f), Vector2(0.0f, 0.0f), 100.0f, 
+		Novice::LoadTexture("./NoviceResources/white1x1.png"));
 
-	Weapon* weapon = new Weapon(Vector2(640.0f, 25.0f), Vector2(32.0f, 32.0f), Vector2(5.0f, 5.0f));
+	Weapon* weapon = new Weapon(Vector2(640.0f, 25.0f), Vector2(48.0f, 48.0f), Vector2(5.0f, 5.0f),	
+		Novice::LoadTexture("./NoviceResources/white1x1.png"));
 
 	Cooldown playerInvincible{ 60 };	// プレイヤーの被弾後の無敵時間(フレーム)
 	const int kWeaponDamage = 5;
@@ -87,7 +98,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		kCameraY,            // minY: 今の見た目(地面が画面の800px)より下には行かない
 		kCameraY + 1000.0f); // maxY: 上方向にどこまでスクロールするか
 
-	player = new Player(Vector2(640.0f, 64.0f), Vector2(5.0f, 5.0f), Vector2(64.0f, 64.0f), 100.0f, camera);
+	player = new Player(Vector2(640.0f, 64.0f), Vector2(5.0f, 5.0f), Vector2(64.0f, 64.0f), 100.0f, camera, 
+		Novice::LoadTexture("./NoviceResources/white1x1.png"));
 	// 回復(数値はここで調整)
 	const int kFlaskCooldown = 600;       // 常備の回復のクールタイム(フレーム。600 = 10秒)
 	const float kFlaskAmount = 20.0f;     // 常備の回復の回復量
@@ -202,7 +214,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 				if (Random::Chance(kDropChance)) {
 					drops.push_back(HealDrop(Vector2(
 						enemy1->Pos().x + enemy1->Size().x * 0.5f,
-						enemy1->Pos().y - enemy1->Size().y * 0.5f)));
+						enemy1->Pos().y - enemy1->Size().y * 0.5f), 0));
 				}
 			}
 		}
@@ -251,6 +263,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #ifdef _DEBUG
 
+		// 仮背景
+		//Novice::DrawBox(0, 0, kWindowWidth, kWindowHeight, 0.0f, 0x90ee90FF, kFillModeSolid);
+
 		// 【仮】スクロールが分かりやすいよう、ステージに縦線を引く(不要になったら消してください)
 		for (float x = 0.0f; x <= kWorldWidth; x += 240.0f) {
 			DrawWorldLine(*camera, Vector2(x, 800.0f), Vector2(x, 0.0f), 0x404040ff);
@@ -260,30 +275,31 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #pragma region Enemy1
 
-		DrawWorldBox(*camera, enemy1->Pos(), enemy1->Size(), 0x40C040ff);
+		DrawWorldBox(*camera, enemy1->Pos(), enemy1->Size(), enemy1->GraphHandle(), 0x40C040ff);
 
 #pragma endregion
 
 		// 回復アイテム(ドロップ)
 		for (const HealDrop& drop : drops) {
 			if (drop.ShouldDraw()) {
-				DrawWorldBox(*camera, drop.Pos(), drop.Size(), 0x60FF90ff);
+				DrawWorldBox(*camera, drop.Pos(), drop.Size(), drop.GraphHandle(), 0x60FF90ff);
 			}
 		}
 
 		if (weapon->IsFlying()) {//攻撃時
-			DrawWorldBox(*camera, player->Pos(), player->Size(), 0xD06060ff);
+			DrawWorldBox(*camera, player->Pos(), player->Size(), player->GraphHandle(), 0xD06060ff);
 		}
 		else if (player->Defence()) {//ガード時
-			DrawWorldBox(*camera, player->Pos(), player->Size(), 0x6060D0ff);
+			DrawWorldBox(*camera, player->Pos(), player->Size(), player->GraphHandle(), 0x6060D0ff);
 		}
 		else {//攻撃、ガード無し
-			DrawWorldBox(*camera, player->Pos(), player->Size(), WHITE);
+			DrawWorldBox(*camera, player->Pos(), player->Size(), player->GraphHandle(), WHITE);
 		}
 
 		// 武器の描画
 		if (weapon->IsActive()) {
-			DrawWorldBox(*camera, weapon->Pos(), weapon->Size(), BLACK);
+			DrawWorldBox(*camera, weapon->Pos(), weapon->Size(), weapon->GraphHandle(), BLACK);
+			
 		}
 
 		// 地面

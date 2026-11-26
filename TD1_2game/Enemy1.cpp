@@ -10,8 +10,8 @@ namespace {
 	}
 }
 
-Enemy1::Enemy1(Vector2 position, Vector2 size, Vector2 velocity, float hp)
-	: Enemy{ position, size, velocity, hp }
+Enemy1::Enemy1(Vector2 position, Vector2 size, Vector2 velocity, float hp, int graphHandle)
+	: Enemy{ position, size, velocity, hp, graphHandle }
 {
 	idleCooldown_.Start();
 }

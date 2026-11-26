@@ -2,8 +2,8 @@
 #include "Random.h"
 #include "World.h"
 
-HealDrop::HealDrop(Vector2 centerPos)
-	: life_{ kLifeFrames }
+HealDrop::HealDrop(Vector2 centerPos, int graphHandle)
+	: life_{ kLifeFrames },	graphHandle_{graphHandle}
 {
 	pos_ = { centerPos.x - size_.x * 0.5f, centerPos.y + size_.y * 0.5f };
 	velocity_ = { Random::RangeF(-kPopSpeedX, kPopSpeedX), kPopSpeedY };
