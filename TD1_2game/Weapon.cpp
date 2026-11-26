@@ -100,7 +100,7 @@ void Weapon::StepReturn(float stepLen, const Vector2& target)
 	else {
 		turn = (delta > maxTurn) ? maxTurn : (delta < -maxTurn ? -maxTurn : delta);   // 近道の向きへ回す
 	}
-	heading_ += turn;
+	heading_ += turn/1.5f;
 
 	retPos_.x += cosf(heading_) * stepLen;
 	retPos_.y += sinf(heading_) * stepLen;

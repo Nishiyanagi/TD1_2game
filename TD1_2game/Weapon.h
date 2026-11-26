@@ -58,7 +58,7 @@ private:
 	static constexpr float kStartSpeed = 24.0f;    // 投げた直後の速さ(px/フレーム)
 	static constexpr float kMinSpeed = 18.0f;      // これ以下には遅くならない速さ(px/フレーム)
 	static constexpr float kDeceleration = 0.5f;   // 1フレームごとに遅くなる量(px/フレーム)
-	static constexpr float kRange = 700.0f;      // 飛ぶ距離
+	static constexpr float kRange = 300.0f;      // 飛ぶ距離
 	static constexpr float kTurnRadius = 160.0f; // 折り返しの丸さ(曲がる半径px。大きいほど大きく丸く曲がる)
 	static constexpr float kMinTurnRadius = 12.0f; // プレイヤーのすぐ近くで曲がるときの、半径の下限
 	static constexpr float kCommitAngle = 2.4f;    // プレイヤーがこれ以上後ろ(ラジアン)にいる間は、決めた向きで曲がり続ける
