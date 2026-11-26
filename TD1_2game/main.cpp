@@ -113,7 +113,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	char keys[256] = { 0 };
 	char preKeys[256] = { 0 };
 
-	int controllerPushUIGraphHandle = Novice::LoadTexture("./");
+	int controllerOffUIGraphHandle = Novice::LoadTexture("./Resources/Images/UI/ControllerOffUI.png");
+	int controllerOnUIGraphHandle = Novice::LoadTexture("./Resources/Images/UI/ControllerOnUI.png");
+
+
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
