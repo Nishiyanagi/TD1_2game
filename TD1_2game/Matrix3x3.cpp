@@ -20,7 +20,7 @@ Matrix3x3 MakeTranslateMatrix(Vector2 translate)
 
 Matrix3x3 MakeRotateMatrix(float theta)
 {
-	Matrix3x3 rotationMatrix;
+	Matrix3x3 rotationMatrix{};
 	rotationMatrix.m[0][0] = cosf(theta);
 	rotationMatrix.m[0][1] = sinf(theta);
 	rotationMatrix.m[0][2] = 0.0f;

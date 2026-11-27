@@ -3,6 +3,7 @@
 #include "Pad.h"
 #include "Weapon.h"
 #include "Vector2.h"
+#include "Theta.h"
 #include "Line.h"
 #include "Enemy1.h"
 #include "Random.h"
@@ -32,24 +33,34 @@ static int IsTriggerButton(int stickNo, PadButton button);
 
 const char kWindowTitle[] = "LC1B_16_ニシヤナギ_リョウマ_タイトル";
 
-// ワールド座標の矩形(pos は左上・Y上向き)をカメラ越しに描画する
-static void DrawWorldBox(const Camera& camera, const Vector2& pos, const Vector2& size, const int graphHandle, unsigned int color)
-{
-	const Vector2 leftTop = camera.WorldToScreen(pos);
-	const Vector2 rightTop = camera.WorldToScreen({ pos.x + size.x, pos.y });
-	const Vector2 leftBottom = camera.WorldToScreen({ pos.x, pos.y - size.y });
-	const Vector2 rightBottom = camera.WorldToScreen({ pos.x + size.x, pos.y - size.y });
 
+// ワールド座標の矩形(pos は左上・Y上向き)をカメラ越しに描画する
+static void DrawWorldBox(const Camera& camera, const Vector2& pos, const Vector2& size,float rotate, const int graphHandle, unsigned int color)
+{
+	const Vector2 leftTop = { 0.0f,0.0f };
+	const Vector2 rightTop = {size.x,0.0f };
+	const Vector2 leftBottom = { 0.0f, -size.y };
+	const Vector2 rightBottom = { size.x, -size.y };
+	
+	Matrix3x3 rotateMatrix = MakeRotateMatrix(rotate);
+	Matrix3x3 translateMatrix = MakeTranslateMatrix(pos);
+	Matrix3x3 worldMatrix = Multiply(rotateMatrix, translateMatrix);
+
+	Vector2 screenLeftTop = camera.WorldToScreen(Transform(leftTop, worldMatrix));
+	Vector2 screenRightTop = camera.WorldToScreen(Transform(rightTop, worldMatrix));
+	Vector2 screenLeftBottom = camera.WorldToScreen(Transform(leftBottom, worldMatrix));
+	Vector2 screenRightBottom = camera.WorldToScreen(Transform(rightBottom, worldMatrix));
 	/*Novice::DrawBox(
 		static_cast<int>(leftTop.x), static_cast<int>(leftTop.y),
 		static_cast<int>(rightBottom.x - leftTop.x), static_cast<int>(rightBottom.y - leftTop.y),
 		0.0f, color, kFillModeSolid);*/
 
+
 	Novice::DrawQuad(
-		static_cast<int>(leftTop.x), static_cast<int>(leftTop.y),
-		static_cast<int>(rightTop.x), static_cast<int>(rightTop.y),
-		static_cast<int>(leftBottom.x), static_cast<int>(leftBottom.y),
-		static_cast<int>(rightBottom.x), static_cast<int>(rightBottom.y),
+		static_cast<int>(screenLeftTop.x), static_cast<int>(screenLeftTop.y),
+		static_cast<int>(screenRightTop.x), static_cast<int>(screenRightTop.y),
+		static_cast<int>(screenLeftBottom.x), static_cast<int>(screenLeftBottom.y),
+		static_cast<int>(screenRightBottom.x), static_cast<int>(screenRightBottom.y),
 		0, 0, static_cast<int>(size.x), static_cast<int>(size.y), graphHandle, color);
 
 }
@@ -75,11 +86,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	Random::Init();
 
-	Enemy1* enemy1 = new Enemy1(Vector2(1200.0f, 100.0f), Vector2(100.0f, 100.0f), Vector2(0.0f, 0.0f), 100.0f, 
+	Enemy1* enemy1 = new Enemy1(Vector2(1200.0f, 100.0f), Vector2(100.0f, 100.0f), Vector2(0.0f, 0.0f), 100.0f,
 		Novice::LoadTexture("./NoviceResources/white1x1.png"));
 
-	Weapon* weapon = new Weapon(Vector2(640.0f, 25.0f), Vector2(48.0f, 48.0f), Vector2(5.0f, 5.0f),	
-		Novice::LoadTexture("./NoviceResources/white1x1.png"));
+	Weapon* weapon = new Weapon(Vector2(640.0f, 25.0f), Vector2(29.0f, 48.0f), Vector2(5.0f, 5.0f),
+		Novice::LoadTexture("./Resources/Images/Player/BoltBoomerang.png"));
 
 	Cooldown playerInvincible{ 60 };	// プレイヤーの被弾後の無敵時間(フレーム)
 	const int kWeaponDamage = 5;
@@ -89,7 +100,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	float kWorldOriginY = 800.0f; // 従来の「ワールドのY=0が画面のどこか」(画面の見た目を変えないために使う)
 
 	//bool isPadAttackTrigger = false; //パッドで攻撃したか
-	
+
 	// カメラ: 今までと同じ見た目(Y=0が画面の800px)になるよう、カメラ中心のYを決める
 	const float kCameraY = kWorldOriginY - kWindowHeight * 0.5f;
 
@@ -100,7 +111,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		kCameraY,            // minY: 今の見た目(地面が画面の800px)より下には行かない
 		kCameraY + 1000.0f); // maxY: 上方向にどこまでスクロールするか
 
-	player = new Player(Vector2(640.0f, 64.0f), Vector2(5.0f, 5.0f), Vector2(64.0f, 64.0f), 100.0f, camera, 
+	player = new Player(Vector2(640.0f, 64.0f), Vector2(5.0f, 5.0f), Vector2(64.0f, 64.0f), 100.0f, camera,
 		Novice::LoadTexture("./NoviceResources/white1x1.png"));
 	// 回復(数値はここで調整)
 	const int kFlaskCooldown = 600;       // 常備の回復のクールタイム(フレーム。600 = 10秒)
@@ -118,6 +129,15 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
 	char preKeys[256] = { 0 };
+
+	
+	float halfWidth = weapon->Size().x / 2.0f;
+	float halfHeight = weapon->Size().y / 2.0f;
+	Vector2 leftTop = { -halfWidth, -halfHeight };
+	Vector2 rightTop = { halfWidth, -halfHeight };
+	Vector2 leftBottom = { -halfWidth, halfHeight };
+	Vector2 rightBottom = { halfWidth, halfHeight };
+
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -266,6 +286,18 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			player->Pos().x + player->Size().x * 0.5f,
 			player->Pos().y - player->Size().y * 0.5f));
 
+		rotateTheta += 0.2f;
+		Matrix3x3 rotateMatrix = MakeRotateMatrix(rotateTheta);
+		Matrix3x3 weaponTranslateMatrix = MakeTranslateMatrix(weapon->Pos()); // 2, 5. 移動
+
+
+		Matrix3x3 weaponMatrix = Multiply(rotateMatrix,weaponTranslateMatrix);
+
+		Vector2 weaponLeftTopPos = Transform(leftTop,weaponMatrix);
+		Vector2 weaponRightTopPos = Transform(rightTop,weaponMatrix);
+		Vector2 weaponLeftBottomPos = Transform(leftBottom,weaponMatrix);
+		Vector2 weaponRightBottomPos = Transform(rightBottom,weaponMatrix);
+		
 
 		///
 		/// ↑更新処理ここまで
@@ -289,31 +321,31 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #pragma region Enemy1
 
-		DrawWorldBox(*camera, enemy1->Pos(), enemy1->Size(), enemy1->GraphHandle(), 0x40C040ff);
+		DrawWorldBox(*camera, enemy1->Pos(), enemy1->Size(),0.0f, enemy1->GraphHandle(), 0x40C040ff);
 
 #pragma endregion
 
 		// 回復アイテム(ドロップ)
 		for (const HealDrop& drop : drops) {
 			if (drop.ShouldDraw()) {
-				DrawWorldBox(*camera, drop.Pos(), drop.Size(), drop.GraphHandle(), 0x60FF90ff);
+				DrawWorldBox(*camera, drop.Pos(), drop.Size(), 0.0f, drop.GraphHandle(), 0x60FF90ff);
 			}
 		}
 
 		if (weapon->IsFlying()) {//攻撃時
-			DrawWorldBox(*camera, player->Pos(), player->Size(), player->GraphHandle(), 0xD06060ff);
+			DrawWorldBox(*camera, player->Pos(), player->Size(), 0.0f, player->GraphHandle(), 0xD06060ff);
 		}
 		else if (player->Defence()) {//ガード時
-			DrawWorldBox(*camera, player->Pos(), player->Size(), player->GraphHandle(), 0x6060D0ff);
+			DrawWorldBox(*camera, player->Pos(), player->Size(), 0.0f, player->GraphHandle(), 0x6060D0ff);
 		}
 		else {//攻撃、ガード無し
-			DrawWorldBox(*camera, player->Pos(), player->Size(), player->GraphHandle(), WHITE);
+			DrawWorldBox(*camera, player->Pos(), player->Size(), 0.0f, player->GraphHandle(), WHITE);
 		}
 
 		// 武器の描画
 		if (weapon->IsActive()) {
-			DrawWorldBox(*camera, weapon->Pos(), weapon->Size(), weapon->GraphHandle(), BLACK);
-			
+			DrawWorldBox(*camera, weapon->Pos(), weapon->Size(),rotateTheta, weapon->GraphHandle(), 0xffffffff);
+
 		}
 
 		// 地面

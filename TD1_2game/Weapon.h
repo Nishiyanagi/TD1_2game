@@ -35,6 +35,7 @@ private:
 	void StepReturn(float stepLen, const Vector2& target);     // 復路を stepLen だけ進める(向きを少しずつ target へ回す)
 
 	Vector2 pos_{};   // 左上(Y上向き)
+	Vector2 leftPos_{};   // 左上(Y上向き)
 	Vector2 size_{};
 	Vector2 velocity_{};
 	bool isActive_ = false;

@@ -1,9 +1,11 @@
 #include "Weapon.h"
+#include "Matrix3x3.h"
 #include <math.h>
 
 namespace {
 	constexpr float kPi = 3.14159265f;
 }
+
 
 Weapon::Weapon(Vector2 pos, Vector2 size, Vector2 velocity, int graphHandle)
 	: pos_(pos), size_(size), velocity_(velocity), graphHandle_(graphHandle)
@@ -11,10 +13,14 @@ Weapon::Weapon(Vector2 pos, Vector2 size, Vector2 velocity, int graphHandle)
 
 }
 
+
+
 Vector2 Weapon::Pos()
 {
 	return pos_;
 }
+
+
 
 Vector2 Weapon::Size()
 {
@@ -100,7 +106,7 @@ void Weapon::StepReturn(float stepLen, const Vector2& target)
 	else {
 		turn = (delta > maxTurn) ? maxTurn : (delta < -maxTurn ? -maxTurn : delta);   // 近道の向きへ回す
 	}
-	heading_ += turn/1.5f;
+	heading_ += turn / 1.5f;
 
 	retPos_.x += cosf(heading_) * stepLen;
 	retPos_.y += sinf(heading_) * stepLen;
