@@ -4,12 +4,11 @@
 #include "Camera.h"
 #include "Pad.h"
 #include "InputDevice.h"
-#include "Weapon.h"
 #include "World.h"
 #include <math.h>
 #include <Novice.h>
 
-Player::Player(Vector2 position, Vector2 speed, Vector2 range, float hp, Camera* camera)
+Player::Player(Vector2 position, Vector2 speed, Vector2 range, float hp, Camera* camera, int graphHandle)
 	:pos_{ position },
 	velocity_{ speed },
 	size_{ range },
@@ -17,15 +16,10 @@ Player::Player(Vector2 position, Vector2 speed, Vector2 range, float hp, Camera*
 	hp_{ hp },
 	maxHp_{ hp },
 	camera_{ camera },
-	attackTimer_{ 0.0f }
-{
+	graphHandle_{ graphHandle } {
 }
 
 bool Player::Defence() {
-	// 吹っ飛びから着地するまではガードできない
-	if (isLaunchLocked_) {
-		return isDefence_ = false;
-	}
 	if (InputDevice::IsPressMouse(1) || InputDevice::IsPressButton(kPadButton11)) {
 		return isDefence_ = true;
 	}
@@ -35,22 +29,34 @@ bool Player::Defence() {
 }
 void Player::Jump(const char* keys, const char* preKeys, Vector2& speed) {
 
+	// ジャンプの入力: 上向きの初速を与えるだけ。動かすのは UpdateGravity
 	if ((keys[DIK_SPACE] && !preKeys[DIK_SPACE] || InputDevice::IsTriggerButton(kPadButton10)) && !Player::Defence()) {
-		isJump_ = true;
 		jumpCount_++;
 		speed.y = 10.0f * (1.0f - jumpCount_ / 15);
 	}
-	if (isJump_) {
-		pos_.y += speed.y;
-		speed.y -= acceleration_.y;
-		if ((pos_.y <= line->StartPos().y + size_.y || pos_.y <= line->EndPos().y + size_.y)) {
-			pos_.y = line->StartPos().y + size_.y;
-			speed.y = 0;
-			jumpCount_ = 0;
-		}
+}
 
+void Player::UpdateGravity() {
+	// 縦の移動(ジャンプの初速も、落下も、ここで動かす)
+	pos_.y += velocity_.y;
+
+	// 重力は常に一定でかかる
+	velocity_.y -= acceleration_.y;
+
+	// 落ちる速さの上限
+	if (velocity_.y < -kMaxFallSpeed) {
+		velocity_.y = -kMaxFallSpeed;
+	}
+
+	// 地面に着いた(足元は pos_.y - size_.y)
+	const float groundY = fmaxf(line->StartPos().y, line->EndPos().y) + size_.y;
+	if (pos_.y <= groundY) {
+		pos_.y = groundY;
+		velocity_.y = 0.0f;
+		jumpCount_ = 0;
 	}
 }
+
 void Player::Move(const char* keys, Vector2 speed, Pads* pad) {
 	if (keys[DIK_D]) {
 		pos_.x += speed.x;
@@ -62,9 +68,6 @@ void Player::Move(const char* keys, Vector2 speed, Pads* pad) {
 	}
 
 	InputDevice::GetAnalogInputLeft(pad->Lx(), pad->Ly());//Lスティックが入力された時の値を返す関数
-	// パッド操作中も、スティックを倒した向きに合わせて向き(isRight_)を更新する
-	if (*pad->Lx() > 8000) { isRight_ = true; }
-	else if (*pad->Lx() < -8000) { isRight_ = false; }
 	speed.x *= static_cast<float>(*pad->Lx()) / 32768;
 	pos_.x += speed.x;
 
@@ -75,14 +78,14 @@ void Player::Move(const char* keys, Vector2 speed, Pads* pad) {
 
 void Player::ClampX(float minX, float maxX)
 {
-	if (pos_.x < minX) { pos_.x = minX; if (isLaunched_) { launchVel_.x = 0.0f; } }
-	if (pos_.x + size_.x > maxX) { pos_.x = maxX - size_.x; if (isLaunched_) { launchVel_.x = 0.0f; } }
+	if (pos_.x < minX) { pos_.x = minX; }
+	if (pos_.x + size_.x > maxX) { pos_.x = maxX - size_.x; }
 
 }
 
 void Player::Show()
 {
-	Novice::ScreenPrintf(0, 40, "AttackTimer:%f", attackTimer_);
+	Novice::ScreenPrintf(0, 40, "SingleAttack:%d", isSingleAttack_ ? 1 : 0);
 }
 
 bool Player::WeaponHit() {
@@ -97,16 +100,20 @@ void Player::Heal(float amount)
 	if (hp_ > maxHp_) { hp_ = maxHp_; }
 }
 
-void Player::GetCursorDirection(Vector2 Pos, Vector2& mouseDirection) {
-	// パッド操作中はマウスを使わず、左スティックの向きで狙う(倒していなければ向いている方向)
-	if (InputDevice::UsePad()) {
-		constexpr float kStickMax = 32768.0f;
-		constexpr float kDeadZone = 0.3f;     // これより小さい入力は「倒していない」とみなす
-		constexpr float kAimLength = 300.0f;  // 方向ベクトルの長さ(マウス操作での、プレイヤーからカーソルまでの距離に相当)
+void Player::GetCursorDirection(Vector2& mouseDirection) {
 
-		int lx = 0;
-		int ly = 0;
+	int lx = 0;
+	int ly = 0;
+	constexpr float kStickMax = 32768.0f;
+	constexpr float kDeadZone = 0.3f;     // これより小さい入力は「倒していない」とみなす
+	constexpr float kAimLength = 300.0f; // 方向ベクトルの長さ(マウス操作での、プレイヤーからカーソルまでの距離に相当)
+
+
+	// パッド操作中はマウスを使わず、左スティックの向きで狙う(倒していなければ向いている方向)
+	if (InputDevice::UsePad() /*&&(Novice::IsTriggerButton(0, kPadButton9) || Novice::IsTriggerButton(0, kPadButton15))*/) {
+
 		InputDevice::GetAnalogInputLeft(&lx, &ly);
+
 
 		float x = static_cast<float>(lx) / kStickMax;
 		float y = static_cast<float>(ly) / -kStickMax;   // スティックは上が負なので、ワールド(Y上向き)に合わせて反転
@@ -131,14 +138,16 @@ void Player::GetCursorDirection(Vector2 Pos, Vector2& mouseDirection) {
 
 	int mousePositionX{};
 	int mousePositionY{};
-	Vector2 playerInversePos{};
-	Novice::GetMousePosition(&mousePositionX, &mousePositionY);//マウスのポジション取得
+	InputDevice::GetMousePosition(&mousePositionX, &mousePositionY);//マウスのポジション取得(スクリーン座標)
 
+	// マウスをワールド座標(Y上向き)に変換して、プレイヤーの中心からの向きを求める
+	// (カメラがスクロールしていてもずれない)
+	const Vector2 mouseWorld = camera_->ScreenToWorld(
+		Vector2(static_cast<float>(mousePositionX), static_cast<float>(mousePositionY)));
+	const Vector2 playerCenter = { pos_.x + size_.x * 0.5f, pos_.y - size_.y * 0.5f };
 
-	playerInversePos = { camera_->ScreenToWorld(Pos) };
-
-	mouseDirection.x = (static_cast<float>(mousePositionX) - playerInversePos.x) - size_.x * 0.5f;
-	mouseDirection.y = ((static_cast<float>(mousePositionY) - playerInversePos.y) * -1 + size_.y * 0.5f);
+	mouseDirection.x = mouseWorld.x - playerCenter.x;
+	mouseDirection.y = mouseWorld.y - playerCenter.y;
 
 
 	Novice::ScreenPrintf(200, 0, "mouseDirection.x:%.1f", mouseDirection.x);
@@ -151,43 +160,15 @@ void Player::GetCursorDirection(Vector2 Pos, Vector2& mouseDirection) {
 
 }
 
-bool Player::Attack(Weapon* weapon, Vector2& mouseDirection) {
-	const bool isPressed = InputDevice::IsPressMouse(0) || InputDevice::IsPressButton(kPadButton15) || InputDevice::IsPressButton(kPadButton9);
+void Player::UpdateAttack(Vector2& mouseDirection) {
+	const bool pressed = InputDevice::IsPressMouse(0) || InputDevice::IsPressButton(kPadButton15) || InputDevice::IsPressButton(kPadButton9);
 
-	// 吹っ飛びから着地するまでは攻撃できない。押しっぱなしのまま着地しても、いったん離すまでは始まらない
-	if (isLaunchLocked_) {
-		attackTimer_ = 0.0f;
-		isHoldExpired_ = isPressed;
-		return isAttack_ = false;
-	}
-
-	if (isPressed) {
-		// 長押しの時間切れのあとは、いったんボタンを離すまで攻撃しない
-		if (isHoldExpired_) {
-			return isAttack_ = false;
-		}
-
-		// 長押しの時間が来た(1回だけ)。武器を戻し始める合図を出す
-		if (attackTimer_ >= kHoldMaxFrames) {
-			isHoldExpired_ = true;
-			isHoldTimeUp_ = true;
-			attackTimer_ = 0;
-			return isAttack_ = false;
-		}
-
-		return isAttack_ = true;
-	}
-
-	// ボタンを離している
-	isHoldExpired_ = false;
-
-	// 短押しで離した → 飛ばす攻撃
-	if (attackTimer_ >= kSingleAttackMinFrames && attackTimer_ <= kSingleAttackMaxFrames) {
-		GetCursorDirection(weapon->Pos(), mouseDirection);
+	// 押した瞬間だけ投げる(押しっぱなしにしても連続では出ない。戻ってくるまでは次を投げられない)
+	if (pressed && !prevAttackPressed_ && !isSingleAttack_) {
+		GetCursorDirection(mouseDirection);
 		isSingleAttack_ = true;
 	}
-	attackTimer_ = 0;
-	return isAttack_ = false;
+	prevAttackPressed_ = pressed;
 }
 
 void Player::Damage(float amount)
@@ -214,16 +195,6 @@ float  Player::HP() {//HP確認
 	return hp_;
 }
 
-float Player::attackTimer() {//攻撃タイマー増加
-	attackTimer_++;
-	return attackTimer_;
-}
-float Player::SetAttackTimer(float times) {//攻撃タイマー代入
-	attackTimer_ = times;
-	return attackTimer_;
-}
-
-
 bool Player::isRight() {
 	return isRight_;
 }
@@ -234,87 +205,4 @@ bool Player::isSingleAttack() {
 bool Player::SetSingleAttack(bool isSingleAttack) {
 
 	return isSingleAttack_ = isSingleAttack;
-}
-
-bool Player::ConsumeHoldTimeUp() {
-	const bool result = isHoldTimeUp_;
-	isHoldTimeUp_ = false;
-	return result;
-}
-
-void Player::StartLaunch(Vector2 direction)
-{
-	float length = sqrtf(direction.x * direction.x + direction.y * direction.y);
-	if (length < 0.001f) {
-		// 真上から重なった等で向きが取れないときは、向いている方向の逆へ
-		direction = { isRight_ ? -1.0f : 1.0f, 0.0f };
-		length = 1.0f;
-	}
-	launchVel_ = { direction.x / length * kLaunchSpeed, direction.y / length * kLaunchSpeed };
-	isLaunched_ = true;
-	isLaunchLocked_ = true;
-	launchFrames_ = 0;
-
-	// 攻撃入力は打ち切り。ボタンを離すまで次の攻撃はしない
-	attackTimer_ = 0.0f;
-	isHoldExpired_ = true;
-	isAttack_ = false;
-}
-
-void Player::UpdateLaunch(const char* keys, Pads* pad)
-{
-	const float groundY = line->StartPos().y + size_.y;
-
-	if (!isLaunched_) {
-		// 吹っ飛びが終わったあと、空中にいる間はロックを続ける。着地したら解除
-		if (isLaunchLocked_ && pos_.y <= groundY + 0.01f) {
-			isLaunchLocked_ = false;
-		}
-		return;
-	}
-	launchFrames_++;
-
-	// 吹っ飛び中の操作(キー or 左スティック)
-	InputDevice::GetAnalogInputLeft(pad->Lx(), pad->Ly());
-	float steerX = static_cast<float>(*pad->Lx()) / 32768.0f;
-	float steerY = static_cast<float>(*pad->Ly()) / -32768.0f;   // スティックは上が負なので反転
-	if (keys[DIK_D]) { steerX += 1.0f; }
-	if (keys[DIK_A]) { steerX -= 1.0f; }
-	if (keys[DIK_W]) { steerY += 1.0f; }
-	if (keys[DIK_S]) { steerY -= 1.0f; }
-	launchVel_.x += steerX * kLaunchAirControl;
-	launchVel_.y += steerY * kLaunchAirControl;
-
-	// 慣性
-	launchVel_.y -= kLaunchGravity;
-	launchVel_.x *= kLaunchDrag;
-	launchVel_.y *= kLaunchDrag;
-
-	pos_.x += launchVel_.x;
-	pos_.y += launchVel_.y;
-
-	// 地面
-	if (pos_.y <= groundY) {
-		pos_.y = groundY;
-		if (launchVel_.y < 0.0f) { launchVel_.y = 0.0f; }
-		launchVel_.x *= kLaunchGroundFriction;
-	}
-
-	if (launchVel_.x > 1.0f) { isRight_ = true; }
-	else if (launchVel_.x < -1.0f) { isRight_ = false; }
-
-	// 終了判定
-	const float speed = sqrtf(launchVel_.x * launchVel_.x + launchVel_.y * launchVel_.y);
-	if (speed < kLaunchEndSpeed || launchFrames_ >= kLaunchMaxFrames) {
-		isLaunched_ = false;
-		jumpCount_ = 0.0f;
-		velocity_.y = launchVel_.y;       // 空中で終わったら、通常のジャンプ処理に落下を引き継ぐ
-		isJump_ = pos_.y > groundY;
-		if (!isJump_) { isLaunchLocked_ = false; }   // 地面で終わったならそのままロック解除
-	}
-}
-
-bool Player::IsLaunched() const
-{
-	return isLaunched_;
 }

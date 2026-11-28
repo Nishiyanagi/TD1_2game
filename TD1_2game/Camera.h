@@ -26,6 +26,7 @@ public:
 	Vector2 ScrollPos();
 private:
 	void ClampToWorld();   // カメラがステージの外を映さないようにする
+	Vector2 ClampTarget(const Vector2& target) const;   // 追いかける目標を、カメラが映せる範囲に収める
 	void UpdateMatrix();   // ビュー × 正射影 × ビューポート を作り直す
 
 	Vector2 pos_{};          // カメラの中心(ワールド座標)
@@ -37,4 +38,5 @@ private:
 	float maxY_ = 0.0f;   // カメラ中心Yの上限
 
 	static constexpr float kFollow = 0.1f;  // 追従のなめらかさ(0〜1。小さいほどゆっくり)
+	static constexpr float kFollowY = 0.06f; // 縦の追従(横よりゆっくり。落ちるときに、カメラが一緒に下がって落下が遅く見えるのを抑える)
 };

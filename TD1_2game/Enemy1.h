@@ -7,7 +7,7 @@ class Enemy1 :
 	public Enemy
 {
 public:
-	Enemy1(Vector2 position, Vector2 size, Vector2 velocity, float hp);
+	Enemy1(Vector2 position, Vector2 size, Vector2 velocity, float hp, int graphHandle);
 
 	// targetPos: プレイヤーの中心座標
 	void Move(const Vector2& targetPos);
