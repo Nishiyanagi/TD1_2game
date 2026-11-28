@@ -180,7 +180,7 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
     <ClCompile Include="InputDevice.cpp" />
     <ClCompile Include="Line.cpp" />
     <ClCompile Include="Enemy.cpp" />
-    <ClCompile Include="Enemy1.cpp" />
+    <ClCompile Include="EnemyCloud.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Matrix3x3.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
@@ -229,7 +229,7 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
     <ClInclude Include="InputDevice.h" />
     <ClInclude Include="Line.h" />
     <ClInclude Include="Enemy.h" />
-    <ClInclude Include="Enemy1.h" />
+    <ClInclude Include="EnemyCloud.h" />
     <ClInclude Include="Matrix3x3.h" />
     <ClInclude Include="Pad.h" />
     <ClInclude Include="Player.h" />

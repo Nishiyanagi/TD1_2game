@@ -4,7 +4,7 @@
 #include "Weapon.h"
 #include "Vector2.h"
 #include "Line.h"
-#include "Enemy1.h"
+#include "EnemyCloud.h"
 #include "Random.h"
 #include "Collision.h"
 #include "Cooldown.h"
@@ -15,6 +15,7 @@
 #include "RegenEffect.h"  // 追加(回復)
 #include <vector>        // 追加(回復)
 #include <algorithm>     // 追加(回復)
+#include <math.h>         // 追加(弾の回転の描画: cosf / sinf)
 #include "InputDevice.h"  // 追加(操作デバイスの切り替え)
 #ifdef USE_IMGUI
 #include <imgui.h>
@@ -54,6 +55,29 @@ static void DrawWorldBox(const Camera& camera, const Vector2& pos, const Vector2
 
 }
 
+// ワールド座標の回転した長方形(中心・大きさ・角度)をカメラ越しに描画する
+// size.x が角度の向きの長さ、size.y が幅。angle は 0 が右向きで、反時計回りが正(Y上向きのワールド座標)
+static void DrawWorldRotatedBox(const Camera& camera, const Vector2& center, const Vector2& size, float angle, const int graphHandle, unsigned int color)
+{
+	const float c = cosf(angle);
+	const float s = sinf(angle);
+	const float hl = size.x * 0.5f;
+	const float hw = size.y * 0.5f;
+
+	// 角度の向き(u)と、その垂直(v)に沿った四隅(DrawWorldBox と同じ並び: 左上・右上・左下・右下)
+	const Vector2 leftTop = camera.WorldToScreen({ center.x - c * hl - s * hw, center.y - s * hl + c * hw });
+	const Vector2 rightTop = camera.WorldToScreen({ center.x + c * hl - s * hw, center.y + s * hl + c * hw });
+	const Vector2 leftBottom = camera.WorldToScreen({ center.x - c * hl + s * hw, center.y - s * hl - c * hw });
+	const Vector2 rightBottom = camera.WorldToScreen({ center.x + c * hl + s * hw, center.y + s * hl - c * hw });
+
+	Novice::DrawQuad(
+		static_cast<int>(leftTop.x), static_cast<int>(leftTop.y),
+		static_cast<int>(rightTop.x), static_cast<int>(rightTop.y),
+		static_cast<int>(leftBottom.x), static_cast<int>(leftBottom.y),
+		static_cast<int>(rightBottom.x), static_cast<int>(rightBottom.y),
+		0, 0, static_cast<int>(size.x), static_cast<int>(size.y), graphHandle, color);
+}
+
 // ワールド座標の線分をカメラ越しに描画する
 static void DrawWorldLine(const Camera& camera, const Vector2& start, const Vector2& end, unsigned int color)
 {
@@ -64,6 +88,16 @@ static void DrawWorldLine(const Camera& camera, const Vector2& start, const Vect
 		static_cast<int>(s.x), static_cast<int>(s.y),
 		static_cast<int>(e.x), static_cast<int>(e.y), color);
 }
+// ワールド座標の円(中心・半径)をカメラ越しに描画する(カメラの拡大率は1なので、半径はそのまま)
+static void DrawWorldCircle(const Camera& camera, const Vector2& center, float radius, unsigned int color)
+{
+	const Vector2 s = camera.WorldToScreen(center);
+	Novice::DrawEllipse(
+		static_cast<int>(s.x), static_cast<int>(s.y),
+		static_cast<int>(radius), static_cast<int>(radius),
+		0.0f, color, kFillModeSolid);
+}
+
 Camera* camera;
 Player* player;
 
@@ -75,21 +109,21 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	Random::Init();
 
-	Enemy1* enemy1 = new Enemy1(Vector2(1200.0f, 100.0f), Vector2(100.0f, 100.0f), Vector2(0.0f, 0.0f), 100.0f, 
+	EnemyCloud* enemycloud = new EnemyCloud(Vector2(1200.0f, 420.0f), Vector2(256.0f, 128.0f), Vector2(0.0f, 0.0f), 100.0f,
 		Novice::LoadTexture("./NoviceResources/white1x1.png"));
 
-	Weapon* weapon = new Weapon(Vector2(640.0f, 25.0f), Vector2(48.0f, 48.0f), Vector2(5.0f, 5.0f),	
+	Weapon* weapon = new Weapon(Vector2(640.0f, 25.0f), Vector2(48.0f, 48.0f), Vector2(5.0f, 5.0f),
 		Novice::LoadTexture("./NoviceResources/white1x1.png"));
 
 	Cooldown playerInvincible{ 60 };	// プレイヤーの被弾後の無敵時間(フレーム)
 	const int kWeaponDamage = 5;
 	const float kReturnDamageMultiplier = 1.5f;	// ブーメランの復路のダメージ倍率
-	const float kEnemyKnockbackSpeed = 12.0f;	// ブーメランが当たったときの、敵の吹っ飛びの初速(大きいほど遠くへ飛ぶ)
 	const float kContactDamage = 2.0f;
+	const float kEnemyAttackDamage = 3.0f;	// 敵の弾・電気玉・雷が当たったときのダメージ
 	float kWorldOriginY = 800.0f; // 従来の「ワールドのY=0が画面のどこか」(画面の見た目を変えないために使う)
 
 	//bool isPadAttackTrigger = false; //パッドで攻撃したか
-	
+
 	// カメラ: 今までと同じ見た目(Y=0が画面の800px)になるよう、カメラ中心のYを決める
 	const float kCameraY = kWorldOriginY - kWindowHeight * 0.5f;
 
@@ -100,7 +134,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		kCameraY,            // minY: 今の見た目(地面が画面の800px)より下には行かない
 		kCameraY + 1000.0f); // maxY: 上方向にどこまでスクロールするか
 
-	player = new Player(Vector2(640.0f, 64.0f), Vector2(5.0f, 5.0f), Vector2(64.0f, 64.0f), 100.0f, camera, 
+	player = new Player(Vector2(640.0f, 64.0f), Vector2(5.0f, 5.0f), Vector2(64.0f, 64.0f), 100.0f, camera,
 		Novice::LoadTexture("./NoviceResources/white1x1.png"));
 	// 回復(数値はここで調整)
 	const int kFlaskCooldown = 600;       // 常備の回復のクールタイム(フレーム。600 = 10秒)
@@ -153,7 +187,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		player->Pos().x + player->Size().x * 0.5f,
 		player->Pos().y - player->Size().y * 0.5f
 		};
-		enemy1->Move(playerCenter);
+		// 画面(カメラ)の中心と幅の半分を渡す。敵はこの画面の中に収まり、スクロールにもついていく
+		enemycloud->Move(playerCenter, camera->Pos().x, kWindowWidth * 0.5f);
 
 #pragma endregion
 
@@ -199,36 +234,47 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		playerInvincible.Update();
 
 		const Rect playerRect = MakeRect(player->Pos(), player->Size());
-		const Rect enemyRect = enemy1->GetRect();
 
-		// 敵 → プレイヤー(接触ダメージ。敵の状態にかかわらず、重なっていれば入る)
-		if (playerInvincible.IsReady() && IsHit(playerRect, enemyRect)) {
-			player->Damage(kContactDamage);
-			playerInvincible.Start();
+		// 敵 → プレイヤー
+		if (playerInvincible.IsReady()) {
+			// 弾・電気玉・雷(無敵時間中は当たらずに通り抜ける)
+			if (enemycloud->HitsPlayer(playerRect)) {
+				player->Damage(kEnemyAttackDamage);
+				playerInvincible.Start();
+			}
+			else {
+				// 接触ダメージ。敵の状態にかかわらず、重なっていれば入る(分裂中は2体とも)
+				for (int i = 0; i < enemycloud->BodyCount(); ++i) {
+					if (IsHit(playerRect, enemycloud->BodyRect(i))) {
+						player->Damage(kContactDamage);
+						playerInvincible.Start();
+						break;
+					}
+				}
+			}
 		}
 
 		// 武器(ブーメラン) → 敵: 往路と復路で1回ずつ当たる(復路はダメージ増)
+		// 分裂中は2体のどちらに当たってもHPは共通。1回の当たりで入るのは1体分だけ
 		if (weapon->IsFlying()) {
 			const Rect weaponRect = MakeRect(weapon->Pos(), weapon->Size());
-			const Vector2 enemyCenter{
-				enemy1->Pos().x + enemy1->Size().x * 0.5f,
-				enemy1->Pos().y - enemy1->Size().y * 0.5f };
-			if (IsHit(weaponRect, enemyRect) && weapon->TryHit(enemyCenter)) {
-				const float damage = weapon->IsReturning()
-					? kWeaponDamage * kReturnDamageMultiplier
-					: static_cast<float>(kWeaponDamage);
-				enemy1->Damage(damage);
+			for (int i = 0; i < enemycloud->BodyCount(); ++i) {
+				const Vector2 bodyPos = enemycloud->BodyPos(i);
+				const Vector2 enemyCenter{
+					bodyPos.x + enemycloud->Size().x * 0.5f,
+					bodyPos.y - enemycloud->Size().y * 0.5f };
 
-				// 敵はブーメランから離れる向きに少し吹っ飛ぶ
-				const float weaponCenterX = weapon->Pos().x + weapon->Size().x * 0.5f;
-				const float knockDir = (enemyCenter.x >= weaponCenterX) ? 1.0f : -1.0f;
-				enemy1->Knockback(knockDir * kEnemyKnockbackSpeed);
+				if (IsHit(weaponRect, enemycloud->BodyRect(i)) && weapon->TryHit(enemyCenter)) {
+					const float damage = weapon->IsReturning()
+						? kWeaponDamage * kReturnDamageMultiplier
+						: static_cast<float>(kWeaponDamage);
+					enemycloud->Damage(damage);
 
-				// 一定確率でリジェネのアイテムが敵の位置に出る
-				if (Random::Chance(kDropChance)) {
-					drops.push_back(HealDrop(Vector2(
-						enemy1->Pos().x + enemy1->Size().x * 0.5f,
-						enemy1->Pos().y - enemy1->Size().y * 0.5f), 0));
+					// 一定確率でリジェネのアイテムが敵の位置に出る
+					if (Random::Chance(kDropChance)) {
+						drops.push_back(HealDrop(enemyCenter, 0));
+					}
+					break;
 				}
 			}
 		}
@@ -289,7 +335,41 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 #pragma region Enemy1
 
-		DrawWorldBox(*camera, enemy1->Pos(), enemy1->Size(), enemy1->GraphHandle(), 0x40C040ff);
+		// 雷(予兆は落雷と同じ太さで、赤く点滅。落雷は黄色い柱)
+		{
+			std::vector<ThunderBolt> bolts;
+			enemycloud->GetThunders(bolts);
+			for (const ThunderBolt& bolt : bolts) {
+				if (!bolt.isVisible) { continue; }   // 点滅で消えているフレーム
+				DrawWorldBox(*camera, { bolt.rect.left, bolt.rect.top },
+					{ bolt.rect.right - bolt.rect.left, bolt.rect.top - bolt.rect.bottom },
+					enemycloud->GraphHandle(), bolt.isStriking ? 0xFFFF40ff : 0xFF2020B0);
+			}
+		}
+
+		// 雲本体(分裂中は2体)。攻撃の予兆中は黄色くなる
+		for (int i = 0; i < enemycloud->BodyCount(); ++i) {
+			DrawWorldBox(*camera, enemycloud->BodyPos(i), enemycloud->Size(), enemycloud->GraphHandle(),
+				enemycloud->IsTelegraphing() ? 0xFFE040ff : 0x8090B0ff);
+		}
+
+		// 単発弾(プレイヤーの方向を向いた長方形)
+		{
+			std::vector<AttackBox> bullets;
+			enemycloud->GetBullets(bullets);
+			for (const AttackBox& bullet : bullets) {
+				DrawWorldRotatedBox(*camera, bullet.center, bullet.size, bullet.angle, enemycloud->GraphHandle(), 0xFFF060ff);
+			}
+		}
+
+		// 回転する電気玉
+		{
+			std::vector<AttackCircle> circles;
+			enemycloud->GetDamageCircles(circles);
+			for (const AttackCircle& circle : circles) {
+				DrawWorldCircle(*camera, circle.center, circle.radius, 0xFFF060ff);
+			}
+		}
 
 #pragma endregion
 
@@ -313,7 +393,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		// 武器の描画
 		if (weapon->IsActive()) {
 			DrawWorldBox(*camera, weapon->Pos(), weapon->Size(), weapon->GraphHandle(), BLACK);
-			
+
 		}
 
 		// 地面
@@ -337,7 +417,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		Novice::ScreenPrintf(0, 60, "PlayerHP:%.1f", player->HP());
 		Novice::ScreenPrintf(200, 60, "PlayerSpeed:%.1f %.1f", player->Velocity()->x, player->Velocity()->y);
-		Novice::ScreenPrintf(0, 80, "EnemyHP:%.1f", enemy1->Hp());
+		Novice::ScreenPrintf(0, 80, "EnemyHP:%.1f", enemycloud->Hp());
+		Novice::ScreenPrintf(0, 180, "Cloud:%s  Bodies:%d", enemycloud->StateName(), enemycloud->BodyCount());
 		Novice::ScreenPrintf(0, 120, "Camera:%.1f %.1f", camera->Pos().x, camera->Pos().y);
 		Novice::ScreenPrintf(0, 140, "Flask:%s  Regen:x%d", flask.IsReady() ? "READY" : "COOLDOWN", regen.Stacks());
 		Novice::ScreenPrintf(0, 160, "Input:%s  (Kで切り替え)", InputDevice::UsePad() ? "PAD" : "KEYBOARD+MOUSE");
